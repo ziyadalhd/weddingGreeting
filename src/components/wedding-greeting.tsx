@@ -244,6 +244,7 @@ export function WeddingGreeting() {
       await navigator.share({
         files: [file],
         title: `تهنئة لـ${weddingConfig.groomName}`,
+        text: formattedMessage,
       });
       setCardStatus("تم فتح خيارات المشاركة 🤍");
     } catch (error) {
@@ -515,13 +516,18 @@ export function WeddingGreeting() {
 
             <div className="mt-7 space-y-3">
               {canShareFiles ? (
-                <button
-                  type="button"
-                  onClick={shareCard}
-                  className="focus-ring min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42]"
-                >
-                  مشاركة البطاقة
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={shareCard}
+                    className="focus-ring min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42]"
+                  >
+                    مشاركة البطاقة
+                  </button>
+                  <p className="px-1 text-center text-xs leading-5 text-[#737A74]">
+                    اختر واتساب من خيارات المشاركة لإرسال البطاقة مع التهنئة.
+                  </p>
+                </>
               ) : (
                 <p className="rounded-2xl bg-[#EEE8DD] px-4 py-3 text-sm leading-6 text-[#735F3E]">
                   المشاركة المباشرة غير مدعومة هنا. احفظ الصورة وشاركها من جهازك.

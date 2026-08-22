@@ -27,7 +27,7 @@ This is a wedding-specific MVP, not a reusable events platform.
 - Link construction is isolated in `src/lib/message-links.ts` and must use `URLSearchParams`/`encodeURIComponent` behavior safely.
 - Card definitions live in `src/config/card-templates.ts`. Keep the set to 2–3 explicit templates; do not build a generic template engine.
 - `src/lib/card-renderer.ts` draws a 1080×1350 PNG on an off-screen canvas. It waits for browser fonts, uses RTL canvas direction, wraps Arabic by words, reduces font size for long messages, and truncates only as a last resort.
-- Native sharing uses `navigator.share()` with a `File` only when `navigator.canShare({ files })` confirms support. Otherwise the generated image remains visible and a download/save fallback is shown.
+- Native sharing uses `navigator.share()` with a `File` and the formatted greeting text only when `navigator.canShare({ files })` confirms file support. The OS target picker—not the website—chooses WhatsApp; WhatsApp may treat the supplied text as an image caption depending on the device/version. Otherwise the generated image remains visible and a download/save fallback is shown.
 - Generated object URLs must be revoked when replaced/unmounted.
 - There is deliberately no environment-variable setup. Public wedding data is edited directly in the central config.
 
@@ -88,7 +88,7 @@ Browser-native file sharing varies by browser and requires HTTPS (localhost is p
 
 ## Configuration checklist before production
 
-- Replace placeholder `whatsappNumber` and `email` in `src/config/wedding.ts`.
+- Confirm the current `whatsappNumber` and `email` in `src/config/wedding.ts` before production.
 - Confirm the groom spelling and any event date.
 - Confirm licensed font files remain available at the documented paths.
 - Run the complete check suite and physical-device share tests.
