@@ -52,18 +52,12 @@ export function CardTemplatePreview({
 
       <div className="relative z-10 flex h-full flex-col items-center px-[13%] py-[14%] text-center">
         <p
-          className={compact ? "text-[8px]" : "text-xs sm:text-sm"}
-          style={{ color: template.accent }}
-        >
-          بِسْم الفرح
-        </p>
-        <p
           className={`mt-[7%] font-bold ${
             compact ? "text-lg" : "text-4xl sm:text-5xl"
           }`}
           style={{ fontFamily: '"Thmanyah Serif Display", "Thmanyah Sans", serif' }}
         >
-          {groomName}
+          إلى {groomName}
         </p>
         <span
           className={`mt-[7%] block h-px ${compact ? "w-6" : "w-12"}`}

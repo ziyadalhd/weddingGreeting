@@ -194,13 +194,9 @@ export async function renderGreetingCard({
   context.textAlign = "center";
   context.textBaseline = "middle";
 
-  context.fillStyle = template.accent;
-  context.font = `500 30px ${sansFontFamily}`;
-  context.fillText("بِسْم الفرح", cardWidth / 2, 190);
-
   context.fillStyle = template.text;
   context.font = `700 82px ${displayFontFamily}`;
-  context.fillText(groomName, cardWidth / 2, 300);
+  context.fillText(`إلى ${groomName}`, cardWidth / 2, 300);
 
   context.strokeStyle = template.accent;
   context.lineWidth = 3;
