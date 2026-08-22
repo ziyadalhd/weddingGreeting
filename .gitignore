@@ -1,0 +1,18 @@
+# dependencies
+/node_modules
+
+# Next.js
+/.next
+/out
+
+# local files
+.DS_Store
+*.log
+
+# environment files are intentionally unused, but ignore accidental local files
+.env*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
