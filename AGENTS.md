@@ -29,7 +29,7 @@ This is a wedding-specific MVP, not a reusable events platform.
 - `src/lib/card-renderer.ts` draws a 1080×1350 PNG on an off-screen canvas. It waits for browser fonts, uses RTL canvas direction, wraps Arabic by words, reduces font size for long messages, and truncates only as a last resort.
 - Native sharing uses `navigator.share()` with a `File` and the formatted greeting text only when `navigator.canShare({ files })` confirms file support. The OS target picker—not the website—chooses WhatsApp; WhatsApp may treat the supplied text as an image caption depending on the device/version. Otherwise the generated image remains visible and a download/save fallback is shown.
 - Browsers cannot write directly to the device photo library. The card page keeps the PNG as a real image, offers an accessible full-screen view for long-press “Save Image/Add to Photos,” and labels the download link honestly as a file download.
-- Card email uses the existing `mailto:` link to prefill recipient, subject, and body. Web `mailto:` cannot attach the generated PNG, so the UI tells the guest to save the image and attach it manually.
+- The text-message email path uses `mailto:` to prefill recipient, subject, and body. For cards, native sharing attaches the PNG but cannot prefill the email recipient, so the preview shows the configured phone number and email beside the share action.
 - Generated object URLs must be revoked when replaced/unmounted.
 - There is deliberately no environment-variable setup. Public wedding data is edited directly in the central config.
 
