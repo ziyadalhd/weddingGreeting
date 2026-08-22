@@ -120,6 +120,33 @@ function ProgressMark({ step }: { step: Step }) {
   );
 }
 
+function ShareChoiceHint() {
+  return (
+    <section
+      aria-label="خيارات إرسال البطاقة"
+      className="rounded-2xl border border-[#DED8CC] bg-[#FCFAF5] px-4 py-3 text-sm leading-6 text-[#69736C]"
+    >
+      <p>
+        اختر واتساب أو الإيميل من خيارات المشاركة.
+      </p>
+      <p className="mt-2 border-t border-[#E5DFD4] pt-2">
+        ما عندك رقم عبدالله؟ هذا رقمه:
+        {" "}
+        <bdi dir="ltr" className="font-bold text-[#294B43]">
+          {weddingConfig.whatsappDisplayNumber}
+        </bdi>
+      </p>
+      <p className="mt-1">
+        وهذا إيميله:
+        {" "}
+        <bdi dir="ltr" className="font-bold break-all text-[#294B43]">
+          {weddingConfig.email}
+        </bdi>
+      </p>
+    </section>
+  );
+}
+
 export function WeddingGreeting() {
   const [step, setStep] = useState<Step>("compose");
   const [guestName, setGuestName] = useState("");
@@ -132,11 +159,13 @@ export function WeddingGreeting() {
   const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
   const [canShareFiles, setCanShareFiles] = useState<boolean | null>(null);
   const [cardStatus, setCardStatus] = useState("");
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
 
   const nameId = useId();
   const messageId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+  const closeImageRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     return () => {
@@ -145,6 +174,12 @@ export function WeddingGreeting() {
       }
     };
   }, [generatedUrl]);
+
+  useEffect(() => {
+    if (isImageExpanded) {
+      closeImageRef.current?.focus();
+    }
+  }, [isImageExpanded]);
 
   const formattedMessage = formatGreetingMessage({
     guestName,
@@ -167,11 +202,11 @@ export function WeddingGreeting() {
     const nextErrors: FieldErrors = {};
 
     if (guestName.trim().length < 2) {
-      nextErrors.name = "اكتب اسمك عشان نضيفه للتهنئة";
+      nextErrors.name = "اكتب اسمك لإضافته إلى التهنئة";
     }
 
     if (message.trim().length < 5) {
-      nextErrors.message = "اكتب كلمة حلوة لعبدالله";
+      nextErrors.message = "اكتب تهنئتك لعبدالله";
     }
 
     setErrors(nextErrors);
@@ -197,7 +232,10 @@ export function WeddingGreeting() {
 
     if (step === "method") setStep("compose");
     if (step === "text" || step === "templates") setStep("method");
-    if (step === "card") setStep("templates");
+    if (step === "card") {
+      setIsImageExpanded(false);
+      setStep("templates");
+    }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -227,7 +265,7 @@ export function WeddingGreeting() {
       setStep("card");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
-      setCardStatus("ما قدرنا نجهّز البطاقة. جرّب مرة ثانية.");
+      setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
     } finally {
       setIsGenerating(false);
     }
@@ -246,14 +284,14 @@ export function WeddingGreeting() {
         title: `تهنئة لـ${weddingConfig.groomName}`,
         text: formattedMessage,
       });
-      setCardStatus("تم فتح خيارات المشاركة 🤍");
+      setCardStatus("فُتحت خيارات المشاركة.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
       setCanShareFiles(false);
-      setCardStatus("المشاركة المباشرة ما اشتغلت. احفظ الصورة وشاركها من جهازك.");
+      setCardStatus("تعذرت المشاركة المباشرة. نزّل الصورة وشاركها من جهازك.");
     }
   }
 
@@ -261,7 +299,7 @@ export function WeddingGreeting() {
     <div className="app-shell mx-auto flex min-h-svh w-full max-w-xl flex-col">
       <div className="flex min-h-11 items-center justify-between">
         <p className="text-sm font-bold tracking-[-0.01em] text-[#183C34]">
-          فرحة عبدالله
+          تهنئة لعبدالله
           <span className="mr-1 text-[#A88956]" aria-hidden="true">
             •
           </span>
@@ -276,9 +314,9 @@ export function WeddingGreeting() {
         {step === "compose" ? (
           <>
             <StepHeader
-              eyebrow="ليلة تبقى في الذاكرة"
-              title="عبدالله يشاركك فرحته 🤍"
-              description="اترك له كلمة حلوة تبقى معه بعد هالليلة. ما راح تاخذ منك إلا لحظة."
+              eyebrow="تهنئة بمناسبة الزواج"
+              title="اكتب تهنئتك لعبدالله"
+              description="شارك عبدالله فرحة زواجه بكلمات تبقى ذكرى جميلة."
             />
 
             <form className="mt-9 space-y-5" onSubmit={handleComposeSubmit} noValidate>
@@ -353,7 +391,7 @@ export function WeddingGreeting() {
                 type="submit"
                 className="focus-ring min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42] active:bg-[#12332C]"
               >
-                كمّل
+                متابعة
               </button>
             </form>
           </>
@@ -364,22 +402,22 @@ export function WeddingGreeting() {
             <BackButton onClick={goBack} />
             <div className="mt-5">
               <StepHeader
-                eyebrow={`يا هلا ${guestName}`}
-                title="وش تحب ترسل؟"
-                description="اختر الطريقة اللي تناسبك، وتهنئتك جاهزة."
+                eyebrow={`مرحبًا ${guestName}`}
+                title="كيف تود إرسال تهنئتك؟"
+                description="اختر رسالة نصية أو بطاقة تهنئة."
               />
             </div>
             <div className="mt-8 space-y-3">
               <ChoiceButton
                 icon={<span aria-hidden="true">✦</span>}
                 title="رسالة نصية"
-                description="أرسلها مباشرة على واتساب أو بالإيميل"
+                description="أرسل تهنئتك عبر واتساب أو الإيميل"
                 onClick={() => setStep("text")}
               />
               <ChoiceButton
                 icon={<span aria-hidden="true">▧</span>}
                 title="بطاقة تهنئة"
-                description="اختر تصميمًا أنيقًا وشارك الصورة من جوالك"
+                description="اختر تصميمًا وشارك البطاقة من جوالك"
                 onClick={() => setStep("templates")}
               />
             </div>
@@ -392,8 +430,8 @@ export function WeddingGreeting() {
             <div className="mt-5">
               <StepHeader
                 eyebrow="رسالتك جاهزة"
-                title="أرسلها بالطريقة اللي تناسبك"
-                description="بنفتح لك التطبيق والرسالة مكتوبة. راجعها واضغط إرسال بنفسك."
+                title="أرسل تهنئتك لعبدالله"
+                description="ستفتح الرسالة جاهزة، ويبقى عليك مراجعتها وإرسالها."
               />
             </div>
 
@@ -435,9 +473,9 @@ export function WeddingGreeting() {
             <BackButton onClick={goBack} />
             <div className="mt-5">
               <StepHeader
-                eyebrow="بطاقة خاصة منّك"
-                title="اختر البطاقة اللي تعجبك"
-                description="ثلاثة تصاميم بسيطة، وتهنئتك بتطلع جاهزة داخلها."
+                eyebrow="بطاقة تهنئة"
+                title="اختر تصميم البطاقة"
+                description="اختر التصميم المناسب، وسنجهز لك البطاقة."
               />
             </div>
 
@@ -482,7 +520,7 @@ export function WeddingGreeting() {
               disabled={isGenerating}
               className="focus-ring mt-7 min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42] disabled:cursor-wait disabled:opacity-65"
             >
-              {isGenerating ? "نجهّز بطاقتك…" : "معاينة البطاقة"}
+              {isGenerating ? "جارٍ تجهيز البطاقة…" : "معاينة البطاقة"}
             </button>
             {cardStatus ? (
               <p className="mt-3 text-center text-sm text-[#A34E46]" role="alert">
@@ -497,13 +535,13 @@ export function WeddingGreeting() {
             <BackButton onClick={goBack} />
             <div className="mt-5">
               <StepHeader
-                eyebrow="تهنئتك جاهزة 🤍"
-                title="معاينة البطاقة"
-                description="شاركها مباشرة، أو احفظها عندك لو جهازك ما يدعم مشاركة الصور."
+                eyebrow="بطاقتك جاهزة"
+                title="راجع البطاقة وشاركها"
+                description="يمكنك مشاركتها مباشرة، أو تكبيرها وحفظها في الصور."
               />
             </div>
 
-            <div className="mx-auto mt-7 w-full max-w-[23rem] overflow-hidden rounded-[1.6rem] shadow-[0_18px_50px_rgba(49,56,51,0.12)]">
+            <div className="relative mx-auto mt-7 w-full max-w-[23rem] overflow-hidden rounded-[1.6rem] shadow-[0_18px_50px_rgba(49,56,51,0.12)]">
               <Image
                 src={generatedUrl}
                 alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
@@ -512,7 +550,20 @@ export function WeddingGreeting() {
                 unoptimized
                 className="h-auto w-full"
               />
+              <button
+                type="button"
+                onClick={() => setIsImageExpanded(true)}
+                className="focus-ring absolute top-3 left-3 min-h-11 rounded-full border border-white/70 bg-[#FCFAF5]/95 px-4 text-sm font-bold text-[#23463E] shadow-sm backdrop-blur-sm"
+                aria-label="تكبير البطاقة"
+              >
+                تكبير
+              </button>
             </div>
+
+            <p className="mt-3 text-center text-sm leading-6 text-[#69736C]">
+              لحفظها في ألبوم الصور: كبّر البطاقة، ثم اضغط عليها مطولًا واختر
+              «حفظ الصورة» أو «إضافة إلى الصور» حسب جهازك.
+            </p>
 
             <div className="mt-7 space-y-3">
               {canShareFiles ? (
@@ -524,22 +575,20 @@ export function WeddingGreeting() {
                   >
                     مشاركة البطاقة
                   </button>
-                  <p className="px-1 text-center text-xs leading-5 text-[#737A74]">
-                    اختر واتساب من خيارات المشاركة لإرسال البطاقة مع التهنئة.
-                  </p>
+                  <ShareChoiceHint />
                 </>
               ) : (
                 <p className="rounded-2xl bg-[#EEE8DD] px-4 py-3 text-sm leading-6 text-[#735F3E]">
-                  المشاركة المباشرة غير مدعومة هنا. احفظ الصورة وشاركها من جهازك.
+                  المشاركة المباشرة غير مدعومة هنا. نزّل الصورة وشاركها من جهازك.
                 </p>
               )}
 
               <a
                 href={generatedUrl}
                 download="tahnia-abdullah.png"
-                className="focus-ring flex min-h-14 w-full items-center justify-center rounded-2xl border border-[#CFC6B7] bg-[#FCFAF5] px-5 text-base font-bold text-[#23463E] transition-colors hover:bg-white"
+                className="focus-ring flex min-h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-bold text-[#69736C] underline decoration-[#CFC6B7] underline-offset-4"
               >
-                حفظ الصورة
+                تنزيل الصورة كملف
               </a>
             </div>
 
@@ -552,8 +601,49 @@ export function WeddingGreeting() {
         ) : null}
       </section>
 
+      {isImageExpanded && generatedUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="expanded-card-title"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setIsImageExpanded(false);
+          }}
+          className="fixed inset-0 z-50 flex flex-col overflow-auto bg-[#13221F]/95 px-3 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
+        >
+          <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-4 pb-3 text-white">
+            <h2 id="expanded-card-title" className="text-base font-bold">
+              البطاقة بالحجم الكامل
+            </h2>
+            <button
+              ref={closeImageRef}
+              type="button"
+              onClick={() => setIsImageExpanded(false)}
+              className="focus-ring min-h-11 rounded-full border border-white/25 px-4 text-sm font-bold"
+            >
+              إغلاق
+            </button>
+          </div>
+
+          <div className="m-auto flex w-full max-w-xl flex-col items-center gap-3">
+            <Image
+              src={generatedUrl}
+              alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
+              width={1080}
+              height={1350}
+              unoptimized
+              className="max-h-[calc(100svh-9rem)] w-auto max-w-full rounded-2xl object-contain"
+              style={{ touchAction: "pinch-zoom" }}
+            />
+            <p className="text-center text-sm leading-6 text-white/85">
+              اضغط مطولًا على البطاقة، ثم اختر «حفظ الصورة» أو «إضافة إلى الصور».
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <footer className="pt-6 text-center text-[11px] text-[#8A8E89]">
-        بكل حب، صُممت لفرحة عبدالله
+        تهنئة خاصة لعبدالله
       </footer>
     </div>
   );

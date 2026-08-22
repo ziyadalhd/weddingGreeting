@@ -76,7 +76,7 @@ export function CardTemplatePreview({
             className={compact ? "text-[6px]" : "text-[11px] sm:text-xs"}
             style={{ color: template.mutedText }}
           >
-            بكل المحبة
+            من:
           </p>
           <p
             className={`mt-1 font-bold ${

@@ -222,7 +222,7 @@ export async function renderGreetingCard({
 
   context.fillStyle = template.mutedText;
   context.font = `400 30px ${sansFontFamily}`;
-  context.fillText("بكل المحبة", cardWidth / 2, 1110);
+  context.fillText("من:", cardWidth / 2, 1110);
 
   context.fillStyle = template.text;
   context.font = `700 42px ${sansFontFamily}`;

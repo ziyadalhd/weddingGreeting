@@ -9,7 +9,7 @@ export function formatGreetingMessage({
   message,
   groomName,
 }: MessageDetails): string {
-  return `يا ${groomName}،\n\n${message.trim()}\n\nمحبّك، ${guestName.trim()}`;
+  return `إلى ${groomName}،\n\n${message.trim()}\n\nمن: ${guestName.trim()}`;
 }
 
 export function buildWhatsAppUrl(

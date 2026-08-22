@@ -16,7 +16,7 @@ test("formats a warm Arabic greeting and trims user input", () => {
 
   assert.equal(
     result,
-    "يا عبدالله،\n\nالله يبارك لكما ويجمع بينكما بخير 🤍\n\nمحبّك، محمد",
+    "إلى عبدالله،\n\nالله يبارك لكما ويجمع بينكما بخير 🤍\n\nمن: محمد",
   );
 });
 
