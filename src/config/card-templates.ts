@@ -3,7 +3,6 @@ export type CardTemplateId = "ivory" | "midnight" | "rose";
 export type CardTemplate = {
   id: CardTemplateId;
   name: string;
-  description: string;
   background: string;
   surface: string;
   text: string;
@@ -15,8 +14,7 @@ export type CardTemplate = {
 export const cardTemplates: readonly CardTemplate[] = [
   {
     id: "ivory",
-    name: "سكينة",
-    description: "عاجي هادئ",
+    name: "عاجي",
     background: "#F5F0E7",
     surface: "#FBF8F2",
     text: "#183D35",
@@ -26,8 +24,7 @@ export const cardTemplates: readonly CardTemplate[] = [
   },
   {
     id: "midnight",
-    name: "ليلة",
-    description: "كحلي أنيق",
+    name: "كحلي",
     background: "#132437",
     surface: "#182B40",
     text: "#F6F0E5",
@@ -37,8 +34,7 @@ export const cardTemplates: readonly CardTemplate[] = [
   },
   {
     id: "rose",
-    name: "مودة",
-    description: "وردي دافئ",
+    name: "وردي",
     background: "#F3EAE8",
     surface: "#F8F1EF",
     text: "#512F3D",

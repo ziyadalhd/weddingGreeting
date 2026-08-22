@@ -27,8 +27,8 @@ This is a wedding-specific MVP, not a reusable events platform.
 - Link construction is isolated in `src/lib/message-links.ts` and must use `URLSearchParams`/`encodeURIComponent` behavior safely.
 - Card definitions live in `src/config/card-templates.ts`. Keep the set to 2–3 explicit templates; do not build a generic template engine.
 - `src/lib/card-renderer.ts` draws a 1080×1350 PNG on an off-screen canvas. It waits for browser fonts, uses RTL canvas direction, wraps Arabic by words, reduces font size for long messages, and truncates only as a last resort.
-- Native sharing uses `navigator.share()` with a `File` and the formatted greeting text only when `navigator.canShare({ files })` confirms file support. The OS target picker—not the website—chooses WhatsApp; WhatsApp may treat the supplied text as an image caption depending on the device/version. Otherwise the generated image remains visible and a download/save fallback is shown.
-- Browsers cannot write directly to the device photo library. The card page keeps the PNG as a real image, offers an accessible full-screen view for long-press “Save Image/Add to Photos,” and labels the download link honestly as a file download.
+- Native sharing uses `navigator.share()` with a `File` and the formatted greeting text only when `navigator.canShare({ files })` confirms file support. The OS target picker—not the website—chooses WhatsApp; WhatsApp may treat the supplied text as an image caption depending on the device/version. Otherwise the generated image remains visible with a full-screen save fallback.
+- Browsers cannot write directly to the device photo library. The card page keeps the PNG as a real image and offers an accessible full-screen view for long-press “Save Image/Add to Photos.” Do not reintroduce a file-download link unless explicitly requested; it saves to Files rather than Photos on common mobile browsers and confused users in testing.
 - The text-message email path uses `mailto:` to prefill recipient, subject, and body. For cards, native sharing attaches the PNG but cannot prefill the email recipient, so the preview shows the configured phone number and email beside the share action.
 - Generated object URLs must be revoked when replaced/unmounted.
 - There is deliberately no environment-variable setup. Public wedding data is edited directly in the central config.
@@ -86,7 +86,7 @@ Before marking work complete:
 5. Browser check at mobile width for the full form, text, card, native-share/fallback paths.
 6. Confirm short/long Arabic copy, field errors, back navigation, WhatsApp encoding, email encoding, no console error, and no horizontal overflow at 320px.
 
-Browser-native file sharing varies by browser and requires HTTPS (localhost is permitted). Automated desktop browsers usually exercise the documented download fallback; final iPhone Safari and Android Chrome share-sheet checks require physical devices before the wedding.
+Browser-native file sharing varies by browser and requires HTTPS (localhost is permitted). Automated desktop browsers may exercise the documented full-screen save fallback; final iPhone Safari and Android Chrome share-sheet checks require physical devices before the wedding.
 
 ## Configuration checklist before production
 

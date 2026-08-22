@@ -26,6 +26,7 @@ import {
 
 type Step = "compose" | "method" | "text" | "templates" | "card";
 type FieldErrors = { name?: string; message?: string };
+type ContactKind = "phone" | "email";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
@@ -120,28 +121,85 @@ function ProgressMark({ step }: { step: Step }) {
   );
 }
 
-function ShareChoiceHint() {
+type ShareChoiceHintProps = {
+  copiedContact: ContactKind | null;
+  copyStatus: string;
+  onCopy: (kind: ContactKind) => void;
+};
+
+function ShareChoiceHint({
+  copiedContact,
+  copyStatus,
+  onCopy,
+}: ShareChoiceHintProps) {
   return (
     <section
-      aria-label="خيارات إرسال البطاقة"
-      className="rounded-2xl border border-[#DED8CC] bg-[#FCFAF5] px-4 py-3 text-sm leading-6 text-[#69736C]"
+      aria-label="بيانات تواصل عبدالله"
+      className="rounded-2xl border border-[#DED8CC] bg-[#FCFAF5] p-3"
     >
-      <p>
-        اختر واتساب أو الإيميل من خيارات المشاركة.
+      <p className="px-1 pb-2 text-sm font-bold text-[#294B43]">
+        تحتاج بيانات عبدالله؟
       </p>
-      <p className="mt-2 border-t border-[#E5DFD4] pt-2">
-        ما عندك رقم عبدالله؟ هذا رقمه:
-        {" "}
-        <bdi dir="ltr" className="font-bold text-[#294B43]">
-          {weddingConfig.whatsappDisplayNumber}
-        </bdi>
-      </p>
-      <p className="mt-1">
-        وهذا إيميله:
-        {" "}
-        <bdi dir="ltr" className="font-bold break-all text-[#294B43]">
-          {weddingConfig.email}
-        </bdi>
+
+      <div className="space-y-2">
+        <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E3DDD2] bg-white pr-3">
+          <span className="min-w-0">
+            <span className="block text-xs text-[#7A807B]">رقم عبدالله</span>
+            <bdi
+              dir="ltr"
+              className="block select-all text-sm font-bold text-[#294B43]"
+            >
+              {weddingConfig.whatsappDisplayNumber}
+            </bdi>
+          </span>
+          <button
+            type="button"
+            onClick={() => onCopy("phone")}
+            className="focus-ring min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
+            aria-label={
+              copiedContact === "phone"
+                ? "تم نسخ رقم عبدالله"
+                : "نسخ رقم عبدالله"
+            }
+          >
+            {copiedContact === "phone" ? "تم النسخ ✓" : "نسخ"}
+          </button>
+        </div>
+
+        <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E3DDD2] bg-white pr-3">
+          <span className="min-w-0 overflow-hidden">
+            <span className="block text-xs text-[#7A807B]">إيميل عبدالله</span>
+            <bdi
+              dir="ltr"
+              className="block select-all truncate text-sm font-bold text-[#294B43]"
+            >
+              {weddingConfig.email}
+            </bdi>
+          </span>
+          <button
+            type="button"
+            onClick={() => onCopy("email")}
+            className="focus-ring min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
+            aria-label={
+              copiedContact === "email"
+                ? "تم نسخ إيميل عبدالله"
+                : "نسخ إيميل عبدالله"
+            }
+          >
+            {copiedContact === "email" ? "تم النسخ ✓" : "نسخ"}
+          </button>
+        </div>
+      </div>
+
+      <p
+        className={
+          copyStatus
+            ? "px-1 pt-2 text-xs leading-5 text-[#69736C]"
+            : "sr-only"
+        }
+        aria-live="polite"
+      >
+        {copyStatus}
       </p>
     </section>
   );
@@ -159,6 +217,8 @@ export function WeddingGreeting() {
   const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
   const [canShareFiles, setCanShareFiles] = useState<boolean | null>(null);
   const [cardStatus, setCardStatus] = useState("");
+  const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
+  const [copyStatus, setCopyStatus] = useState("");
   const [isImageExpanded, setIsImageExpanded] = useState(false);
 
   const nameId = useId();
@@ -229,6 +289,8 @@ export function WeddingGreeting() {
 
   function goBack() {
     setCardStatus("");
+    setCopiedContact(null);
+    setCopyStatus("");
 
     if (step === "method") setStep("compose");
     if (step === "text" || step === "templates") setStep("method");
@@ -291,7 +353,30 @@ export function WeddingGreeting() {
       }
 
       setCanShareFiles(false);
-      setCardStatus("تعذرت المشاركة المباشرة. نزّل الصورة وشاركها من جهازك.");
+      setCardStatus(
+        "تعذرت المشاركة المباشرة. كبّر البطاقة واحفظها في الصور، ثم شاركها من جهازك.",
+      );
+    }
+  }
+
+  async function copyContact(kind: ContactKind) {
+    const value =
+      kind === "phone"
+        ? weddingConfig.whatsappDisplayNumber
+        : weddingConfig.email;
+    const label = kind === "phone" ? "رقم عبدالله" : "إيميل عبدالله";
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API is unavailable");
+      }
+
+      await navigator.clipboard.writeText(value);
+      setCopiedContact(kind);
+      setCopyStatus(`تم نسخ ${label}`);
+    } catch {
+      setCopiedContact(null);
+      setCopyStatus("تعذر النسخ تلقائيًا. اضغط مطولًا على البيانات لنسخها.");
     }
   }
 
@@ -489,6 +574,7 @@ export function WeddingGreeting() {
                     type="button"
                     role="radio"
                     aria-checked={isSelected}
+                    aria-label={`تصميم ${template.name}`}
                     onClick={() => setSelectedTemplate(template.id)}
                     className={`focus-ring min-w-0 rounded-[1.2rem] border p-1.5 text-right transition-[border-color,box-shadow] ${
                       isSelected
@@ -503,11 +589,8 @@ export function WeddingGreeting() {
                       message={message}
                       compact
                     />
-                    <span className="mt-2 block truncate px-1 text-sm font-bold text-[#26473F]">
+                    <span className="my-2 block truncate px-1 text-center text-sm font-bold text-[#26473F]">
                       {template.name}
-                    </span>
-                    <span className="mb-1 block truncate px-1 text-[11px] text-[#7A807B]">
-                      {template.description}
                     </span>
                   </button>
                 );
@@ -575,21 +658,18 @@ export function WeddingGreeting() {
                   >
                     مشاركة البطاقة
                   </button>
-                  <ShareChoiceHint />
+                  <ShareChoiceHint
+                    copiedContact={copiedContact}
+                    copyStatus={copyStatus}
+                    onCopy={copyContact}
+                  />
                 </>
               ) : (
                 <p className="rounded-2xl bg-[#EEE8DD] px-4 py-3 text-sm leading-6 text-[#735F3E]">
-                  المشاركة المباشرة غير مدعومة هنا. نزّل الصورة وشاركها من جهازك.
+                  المشاركة المباشرة غير مدعومة هنا. كبّر البطاقة واحفظها في
+                  الصور، ثم شاركها من جهازك.
                 </p>
               )}
-
-              <a
-                href={generatedUrl}
-                download="tahnia-abdullah.png"
-                className="focus-ring flex min-h-12 w-full items-center justify-center rounded-2xl px-5 text-sm font-bold text-[#69736C] underline decoration-[#CFC6B7] underline-offset-4"
-              >
-                تنزيل الصورة كملف
-              </a>
             </div>
 
             {cardStatus ? (
