@@ -33,6 +33,27 @@ const maxMessageLength = 280;
 
 const displayFont = { fontFamily: '"Thmanyah Serif Display", "Thmanyah Sans", serif' };
 
+function toArabicNumerals(value: number): string {
+  const digits = "٠١٢٣٤٥٦٧٨٩";
+  return String(value).replace(/\d/g, (d) => digits[Number(d)]);
+}
+
+type CrestProps = { size?: "sm" | "lg"; reveal?: boolean };
+
+function Crest({ size = "sm", reveal = false }: CrestProps) {
+  const dimension = size === "lg" ? "size-16 text-[2rem]" : "size-9 text-[1.15rem]";
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`crest ${reveal ? "crest-reveal" : ""} ${dimension} font-bold leading-none`}
+      style={displayFont}
+    >
+      و
+    </span>
+  );
+}
+
 type IconProps = { className?: string };
 
 function IconMessage({ className }: IconProps) {
@@ -128,12 +149,15 @@ function StepHeader({ eyebrow, title, description }: StepHeaderProps) {
   return (
     <header>
       {eyebrow ? (
-        <p className="mb-3 flex items-center gap-2 text-sm font-bold tracking-[0.01em] text-[#9C7C42]">
+        <p className="eyebrow mb-3 flex items-center gap-2 text-xs font-bold text-[#9C7C42]">
           <span aria-hidden="true" className="h-px w-4 bg-[#9C7C42]/60" />
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="text-[2rem] leading-[1.28] font-bold tracking-[-0.025em] text-[#14312B] sm:text-[2.35rem]">
+      <h1
+        className="text-[2rem] leading-[1.24] font-bold tracking-[-0.02em] text-[#14312B] sm:text-[2.3rem]"
+        style={displayFont}
+      >
         {title}
       </h1>
       {description ? (
@@ -141,6 +165,34 @@ function StepHeader({ eyebrow, title, description }: StepHeaderProps) {
           {description}
         </p>
       ) : null}
+    </header>
+  );
+}
+
+type HeroHeaderProps = {
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+function HeroHeader({ eyebrow, title, description }: HeroHeaderProps) {
+  return (
+    <header className="flex flex-col items-center text-center">
+      <Crest size="lg" reveal />
+      <p className="eyebrow mt-6 text-xs font-bold text-[#9C7C42]">{eyebrow}</p>
+      <div className="mt-3 flex w-full items-center gap-4">
+        <span className="hero-rule" style={{ ["--rule-origin" as string]: "left" }} />
+        <h1
+          className="shrink-0 text-[2.15rem] leading-[1.2] font-bold tracking-[-0.02em] text-[#14312B] sm:text-[2.5rem]"
+          style={displayFont}
+        >
+          {title}
+        </h1>
+        <span className="hero-rule" style={{ ["--rule-origin" as string]: "right" }} />
+      </div>
+      <p className="mt-4 max-w-sm text-[0.98rem] leading-7 text-[#5C645E]">
+        {description}
+      </p>
     </header>
   );
 }
@@ -198,15 +250,25 @@ function ProgressMark({ step }: { step: Step }) {
     step === "compose" ? 1 : step === "method" ? 2 : step === "card" ? 4 : 3;
 
   return (
-    <div className="flex items-center gap-1.5" aria-label={`الخطوة ${position} من 4`}>
-      {[1, 2, 3, 4].map((item) => (
-        <span
-          key={item}
-          className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out ${
-            item === position ? "w-6 bg-[#9C7C42]" : "w-1.5 bg-[#E6DDC8]"
-          }`}
-        />
-      ))}
+    <div
+      className="flex items-center gap-2.5"
+      aria-label={`الخطوة ${position} من 4`}
+    >
+      <span className="text-xs font-bold tabular-nums text-[#9C7C42]" aria-hidden="true">
+        {toArabicNumerals(position)}
+        <span className="mx-1 text-[#C9AF7C]">/</span>
+        <span className="text-[#B7AE9A]">{toArabicNumerals(4)}</span>
+      </span>
+      <span className="flex items-center gap-1.5" aria-hidden="true">
+        {[1, 2, 3, 4].map((item) => (
+          <span
+            key={item}
+            className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out ${
+              item === position ? "w-6 bg-[#9C7C42]" : "w-1.5 bg-[#E6DDC8]"
+            }`}
+          />
+        ))}
+      </span>
     </div>
   );
 }
@@ -486,16 +548,10 @@ export function WeddingGreeting() {
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col sm:min-h-0 sm:py-10">
-      <div className="app-shell flex flex-1 flex-col sm:rounded-[2rem] sm:border sm:border-[#E6DDC8] sm:bg-white sm:px-9 sm:pt-8 sm:pb-9 sm:shadow-[0_1px_2px_rgba(20,49,43,0.04),0_28px_60px_-24px_rgba(20,49,43,0.2)]">
+      <div className="ornament-field app-shell flex flex-1 flex-col sm:rounded-[2rem] sm:border sm:border-[#E6DDC8] sm:bg-white sm:px-9 sm:pt-8 sm:pb-9 sm:shadow-[0_1px_2px_rgba(20,49,43,0.04),0_28px_60px_-24px_rgba(20,49,43,0.2)]">
         <div className="flex min-h-11 items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="grid size-8 shrink-0 place-items-center rounded-full bg-[#9C7C42]/14 text-[1.05rem] text-[#9C7C42]"
-              style={displayFont}
-            >
-              و
-            </span>
+            <Crest />
             <p className="text-sm font-bold tracking-[-0.01em] text-[#14312B]">
               تهنئة لعبدالله
             </p>
@@ -509,7 +565,7 @@ export function WeddingGreeting() {
         >
           {step === "compose" ? (
             <>
-              <StepHeader
+              <HeroHeader
                 eyebrow="تهنئة بمناسبة الزواج"
                 title="اكتب تهنئتك لعبدالله"
                 description="شارك عبدالله فرحة زواجه بكلمات تبقى ذكرى جميلة."
@@ -585,7 +641,7 @@ export function WeddingGreeting() {
 
                 <button
                   type="submit"
-                  className="focus-ring min-h-14 w-full rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#1B4038] active:scale-[0.99] active:bg-[#0F2620]"
+                  className="focus-ring min-h-14 w-full rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#1B4038] active:scale-[0.99] active:bg-[#0F2620]"
                 >
                   متابعة
                 </button>
@@ -648,7 +704,7 @@ export function WeddingGreeting() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
+                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
                 >
                   <IconSend className="size-5" />
                   إرسال على واتساب
@@ -717,7 +773,7 @@ export function WeddingGreeting() {
                 type="button"
                 onClick={generateCard}
                 disabled={isGenerating}
-                className="focus-ring mt-7 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99] disabled:cursor-wait disabled:opacity-65"
+                className="focus-ring mt-7 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99] disabled:cursor-wait disabled:opacity-65"
               >
                 {isGenerating ? (
                   <>
@@ -778,7 +834,7 @@ export function WeddingGreeting() {
                     <button
                       type="button"
                       onClick={shareCard}
-                      className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
+                      className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
                     >
                       <IconSend className="size-5" />
                       مشاركة البطاقة

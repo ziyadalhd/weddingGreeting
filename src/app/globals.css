@@ -73,12 +73,32 @@ body {
   min-width: 320px;
   margin: 0;
   background:
-    radial-gradient(circle at 50% -12%, rgb(255 255 255 / 85%), transparent 34rem),
+    radial-gradient(circle at 50% -8%, rgb(255 255 255 / 92%), transparent 30rem),
+    radial-gradient(circle at 50% 120%, rgb(156 124 66 / 8%), transparent 26rem),
     var(--background);
   color: var(--foreground);
   font-family: "Thmanyah Sans", Tahoma, Arial, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Faint Arabic geometric watermark, inline SVG so there is no network request. */
+.ornament-field {
+  position: relative;
+  isolation: isolate;
+}
+
+.ornament-field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%239c7c42' stroke-width='1' stroke-opacity='0.14'%3E%3Cpath d='M36 6l9 9-9 9-9-9z'/%3E%3Cpath d='M36 42l9 9-9 9-9-9z'/%3E%3Cpath d='M0 36l9-9 9 9-9 9z'/%3E%3Cpath d='M54 36l9-9 9 9-9 9z'/%3E%3Ccircle cx='36' cy='36' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(circle at 50% 34%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 34%, #000 0%, transparent 72%);
 }
 
 button,
@@ -154,6 +174,85 @@ a {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Signature crest: a gold-ringed medallion holding the wedding conjunction. */
+.crest {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background:
+    radial-gradient(circle at 50% 38%, rgb(255 255 255 / 90%), transparent 70%),
+    var(--surface-sunken);
+  box-shadow:
+    0 0 0 1px rgb(156 124 66 / 45%),
+    0 0 0 5px rgb(156 124 66 / 10%),
+    0 12px 28px -14px rgb(20 49 43 / 30%);
+}
+
+.crest::before,
+.crest::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: translateX(-50%);
+}
+
+.crest::before {
+  top: -9px;
+}
+
+.crest::after {
+  bottom: -9px;
+}
+
+.crest-reveal {
+  animation: crest-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes crest-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Thin gold rule that draws outward from the hero title. */
+.hero-rule {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    var(--rule-dir, to left),
+    transparent,
+    rgb(156 124 66 / 55%)
+  );
+  transform-origin: var(--rule-origin, right);
+  animation: rule-draw 700ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.eyebrow {
+  letter-spacing: 0.14em;
 }
 
 @media (prefers-reduced-motion: reduce) {
