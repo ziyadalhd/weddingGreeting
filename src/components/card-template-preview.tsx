@@ -6,6 +6,8 @@ type CardTemplatePreviewProps = {
   guestName: string;
   message: string;
   compact?: boolean;
+  placeholderName?: boolean;
+  placeholderMessage?: boolean;
 };
 
 export function CardTemplatePreview({
@@ -14,10 +16,12 @@ export function CardTemplatePreview({
   guestName,
   message,
   compact = false,
+  placeholderName = false,
+  placeholderMessage = false,
 }: CardTemplatePreviewProps) {
   return (
     <div
-      className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.35rem]"
+      className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.35rem] transition-colors duration-500 ease-out"
       style={{ backgroundColor: template.background, color: template.text }}
       aria-hidden="true"
     >
@@ -60,13 +64,13 @@ export function CardTemplatePreview({
           إلى {groomName}
         </p>
         <span
-          className={`mt-[7%] block h-px ${compact ? "w-6" : "w-12"}`}
+          className={`mt-[7%] block h-px transition-colors duration-500 ${compact ? "w-6" : "w-12"}`}
           style={{ backgroundColor: template.accent }}
         />
         <p
-          className={`mt-auto max-h-[42%] overflow-hidden [overflow-wrap:anywhere] leading-[1.75] ${
+          className={`mt-auto max-h-[42%] overflow-hidden [overflow-wrap:anywhere] leading-[1.75] transition-opacity duration-300 ${
             compact ? "text-[7px]" : "text-base sm:text-lg"
-          }`}
+          } ${placeholderMessage ? "opacity-40" : ""}`}
           style={{ fontFamily: '"Thmanyah Serif Text", "Thmanyah Sans", serif' }}
         >
           {message}
@@ -79,9 +83,9 @@ export function CardTemplatePreview({
             من:
           </p>
           <p
-            className={`mt-1 font-bold ${
+            className={`mt-1 font-bold transition-opacity duration-300 ${
               compact ? "text-[8px]" : "text-sm sm:text-base"
-            }`}
+            } ${placeholderName ? "opacity-40" : ""}`}
           >
             {guestName}
           </p>

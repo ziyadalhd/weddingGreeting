@@ -24,9 +24,13 @@ import {
   formatGreetingMessage,
 } from "@/lib/message-links";
 
-type Step = "compose" | "method" | "text" | "templates" | "card";
+type Step = "compose" | "method" | "text" | "card";
+type Direction = "fwd" | "back";
 type FieldErrors = { name?: string; message?: string };
 type ContactKind = "phone" | "email";
+
+const previewNameFallback = "اسمك";
+const previewMessageFallback = "ستظهر تهنئتك هنا";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
@@ -169,33 +173,6 @@ function StepHeader({ eyebrow, title, description }: StepHeaderProps) {
   );
 }
 
-type HeroHeaderProps = {
-  eyebrow: string;
-  title: string;
-  description: string;
-};
-
-function HeroHeader({ eyebrow, title, description }: HeroHeaderProps) {
-  return (
-    <header className="flex flex-col items-center text-center">
-      <Crest size="lg" reveal />
-      <p className="eyebrow mt-6 text-xs font-bold text-[#9C7C42]">{eyebrow}</p>
-      <div className="mt-3 flex w-full items-center gap-4">
-        <span className="hero-rule" style={{ ["--rule-origin" as string]: "left" }} />
-        <h1
-          className="shrink-0 text-[2.15rem] leading-[1.2] font-bold tracking-[-0.02em] text-[#14312B] sm:text-[2.5rem]"
-          style={displayFont}
-        >
-          {title}
-        </h1>
-        <span className="hero-rule" style={{ ["--rule-origin" as string]: "right" }} />
-      </div>
-      <p className="mt-4 max-w-sm text-[0.98rem] leading-7 text-[#5C645E]">
-        {description}
-      </p>
-    </header>
-  );
-}
 
 type BackButtonProps = { onClick: () => void };
 
@@ -217,14 +194,22 @@ type ChoiceButtonProps = {
   title: string;
   description: string;
   onClick: () => void;
+  disabled?: boolean;
 };
 
-function ChoiceButton({ icon, title, description, onClick }: ChoiceButtonProps) {
+function ChoiceButton({
+  icon,
+  title,
+  description,
+  onClick,
+  disabled = false,
+}: ChoiceButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="focus-ring group flex min-h-28 w-full items-center gap-4 rounded-3xl border border-[#E6DDC8] bg-white p-5 text-right shadow-[0_1px_2px_rgba(20,49,43,0.04)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#C9AF7C] hover:shadow-[0_16px_32px_-16px_rgba(20,49,43,0.22)] active:translate-y-0 active:scale-[0.99]"
+      disabled={disabled}
+      className="focus-ring group flex min-h-28 w-full items-center gap-4 rounded-3xl border border-[#E6DDC8] bg-white p-5 text-right shadow-[0_1px_2px_rgba(20,49,43,0.04)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#C9AF7C] hover:shadow-[0_16px_32px_-16px_rgba(20,49,43,0.22)] active:translate-y-0 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:border-[#E6DDC8] disabled:hover:shadow-[0_1px_2px_rgba(20,49,43,0.04)]"
     >
       <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#9C7C42]/12 text-[#14312B] transition-colors group-hover:bg-[#9C7C42]/18">
         {icon}
@@ -246,21 +231,20 @@ function ChoiceButton({ icon, title, description, onClick }: ChoiceButtonProps) 
 }
 
 function ProgressMark({ step }: { step: Step }) {
-  const position =
-    step === "compose" ? 1 : step === "method" ? 2 : step === "card" ? 4 : 3;
+  const position = step === "compose" ? 1 : step === "method" ? 2 : 3;
 
   return (
     <div
       className="flex items-center gap-2.5"
-      aria-label={`الخطوة ${position} من 4`}
+      aria-label={`الخطوة ${position} من 3`}
     >
       <span className="text-xs font-bold tabular-nums text-[#9C7C42]" aria-hidden="true">
         {toArabicNumerals(position)}
         <span className="mx-1 text-[#C9AF7C]">/</span>
-        <span className="text-[#B7AE9A]">{toArabicNumerals(4)}</span>
+        <span className="text-[#B7AE9A]">{toArabicNumerals(3)}</span>
       </span>
       <span className="flex items-center gap-1.5" aria-hidden="true">
-        {[1, 2, 3, 4].map((item) => (
+        {[1, 2, 3].map((item) => (
           <span
             key={item}
             className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out ${
@@ -373,6 +357,7 @@ function ShareChoiceHint({
 
 export function WeddingGreeting() {
   const [step, setStep] = useState<Step>("compose");
+  const [direction, setDirection] = useState<Direction>("fwd");
   const [guestName, setGuestName] = useState("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -406,6 +391,23 @@ export function WeddingGreeting() {
       closeImageRef.current?.focus();
     }
   }, [isImageExpanded]);
+
+  function goTo(next: Step, dir: Direction) {
+    setDirection(dir);
+    setStep(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleParallax(event: React.PointerEvent<HTMLDivElement>) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const { innerWidth, innerHeight } = window;
+    const x = (event.clientX / innerWidth - 0.5) * -20;
+    const y = (event.clientY / innerHeight - 0.5) * -20;
+    const target = event.currentTarget;
+    target.style.setProperty("--parallax-x", `${x.toFixed(1)}px`);
+    target.style.setProperty("--parallax-y", `${y.toFixed(1)}px`);
+  }
 
   const formattedMessage = formatGreetingMessage({
     guestName,
@@ -449,8 +451,7 @@ export function WeddingGreeting() {
 
     setGuestName(guestName.trim());
     setMessage(message.trim());
-    setStep("method");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    goTo("method", "fwd");
   }
 
   function goBack() {
@@ -458,14 +459,12 @@ export function WeddingGreeting() {
     setCopiedContact(null);
     setCopyStatus("");
 
-    if (step === "method") setStep("compose");
-    if (step === "text" || step === "templates") setStep("method");
+    if (step === "method") goTo("compose", "back");
+    if (step === "text") goTo("method", "back");
     if (step === "card") {
       setIsImageExpanded(false);
-      setStep("templates");
+      goTo("method", "back");
     }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function generateCard() {
@@ -490,8 +489,7 @@ export function WeddingGreeting() {
       setGeneratedBlob(blob);
       setGeneratedUrl(URL.createObjectURL(blob));
       setCanShareFiles(sharingIsSupported);
-      setStep("card");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      goTo("card", "fwd");
     } catch {
       setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
     } finally {
@@ -547,8 +545,11 @@ export function WeddingGreeting() {
   }
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col sm:min-h-0 sm:py-10">
-      <div className="ornament-field app-shell flex flex-1 flex-col sm:rounded-[2rem] sm:border sm:border-[#E6DDC8] sm:bg-white sm:px-9 sm:pt-8 sm:pb-9 sm:shadow-[0_1px_2px_rgba(20,49,43,0.04),0_28px_60px_-24px_rgba(20,49,43,0.2)]">
+    <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col overflow-x-clip sm:min-h-0 sm:py-10">
+      <div
+        onPointerMove={handleParallax}
+        className="ornament-field app-shell flex flex-1 flex-col sm:rounded-[2rem] sm:border sm:border-[#E6DDC8] sm:bg-white sm:px-9 sm:pt-8 sm:pb-9 sm:shadow-[0_1px_2px_rgba(20,49,43,0.04),0_28px_60px_-24px_rgba(20,49,43,0.2)]"
+      >
         <div className="flex min-h-11 items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Crest />
@@ -561,17 +562,70 @@ export function WeddingGreeting() {
 
         <section
           key={step}
-          className="screen-enter flex flex-1 flex-col pt-8 pb-2 sm:justify-center sm:py-10"
+          className={`${direction === "fwd" ? "enter-fwd" : "enter-back"} flex flex-1 flex-col pt-8 pb-2 sm:justify-center sm:py-10`}
         >
           {step === "compose" ? (
             <>
-              <HeroHeader
-                eyebrow="تهنئة بمناسبة الزواج"
-                title="اكتب تهنئتك لعبدالله"
-                description="شارك عبدالله فرحة زواجه بكلمات تبقى ذكرى جميلة."
-              />
+              <header className="flex flex-col items-center text-center">
+                <Crest size="lg" reveal />
+                <p className="eyebrow mt-5 text-xs font-bold text-[#9C7C42]">
+                  تهنئة بمناسبة الزواج
+                </p>
+                <h1
+                  className="mt-2 text-[1.9rem] leading-[1.2] font-bold tracking-[-0.02em] text-[#14312B]"
+                  style={displayFont}
+                >
+                  اكتب تهنئتك لعبدالله
+                </h1>
+              </header>
 
-              <form className="mt-9 space-y-6" onSubmit={handleComposeSubmit} noValidate>
+              <div className="card-reveal mx-auto mt-7 w-full max-w-[15rem]">
+                <div className="overflow-hidden rounded-[1.5rem] shadow-[0_1px_2px_rgba(20,49,43,0.06),0_20px_44px_-18px_rgba(20,49,43,0.3)]">
+                  <CardTemplatePreview
+                    template={getCardTemplate(selectedTemplate)}
+                    groomName={weddingConfig.groomName}
+                    guestName={guestName.trim() || previewNameFallback}
+                    message={message.trim() || previewMessageFallback}
+                    placeholderName={!guestName.trim()}
+                    placeholderMessage={!message.trim()}
+                  />
+                </div>
+              </div>
+
+              <div
+                className="mt-5 flex items-center justify-center gap-2.5"
+                role="radiogroup"
+                aria-label="تصميم البطاقة"
+              >
+                {cardTemplates.map((template) => {
+                  const isSelected = selectedTemplate === template.id;
+
+                  return (
+                    <button
+                      key={template.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      aria-label={`تصميم ${template.name}`}
+                      onClick={() => setSelectedTemplate(template.id)}
+                      className={`focus-ring flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-bold transition-[border-color,background-color] duration-200 ${
+                        isSelected
+                          ? "swatch-pop border-[#9C7C42] bg-[#9C7C42]/10 text-[#14312B]"
+                          : "border-[#E6DDC8] text-[#737A74] hover:border-[#C9AF7C]"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="size-3.5 rounded-full ring-1 ring-inset ring-black/10"
+                        style={{ backgroundColor: template.background }}
+                      />
+                      {template.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <form className="mt-7 space-y-6" onSubmit={handleComposeSubmit} noValidate>
                 <div>
                   <label
                     htmlFor={nameId}
@@ -664,15 +718,28 @@ export function WeddingGreeting() {
                   icon={<IconMessage className="size-6" />}
                   title="رسالة نصية"
                   description="أرسل تهنئتك عبر واتساب أو الإيميل"
-                  onClick={() => setStep("text")}
+                  onClick={() => goTo("text", "fwd")}
+                  disabled={isGenerating}
                 />
                 <ChoiceButton
-                  icon={<IconCard className="size-6" />}
-                  title="بطاقة تهنئة"
-                  description="اختر تصميمًا وشارك البطاقة من جوالك"
-                  onClick={() => setStep("templates")}
+                  icon={
+                    isGenerating ? (
+                      <IconSpinner className="size-6" />
+                    ) : (
+                      <IconCard className="size-6" />
+                    )
+                  }
+                  title={isGenerating ? "جارٍ تجهيز بطاقتك" : "بطاقة تهنئة"}
+                  description="شارك بطاقتك المصمّمة من جوالك"
+                  onClick={generateCard}
+                  disabled={isGenerating}
                 />
               </div>
+              {cardStatus ? (
+                <p className="mt-3 text-center text-sm text-[#A3453C]" role="alert">
+                  {cardStatus}
+                </p>
+              ) : null}
             </>
           ) : null}
 
@@ -717,78 +784,6 @@ export function WeddingGreeting() {
                   إرسال بالإيميل
                 </a>
               </div>
-            </>
-          ) : null}
-
-          {step === "templates" ? (
-            <>
-              <BackButton onClick={goBack} />
-              <div className="mt-5">
-                <StepHeader
-                  eyebrow="بطاقة تهنئة"
-                  title="اختر تصميم البطاقة"
-                  description="اختر التصميم المناسب، وسنجهز لك البطاقة."
-                />
-              </div>
-
-              <div className="mt-7 grid grid-cols-3 gap-2.5" role="radiogroup" aria-label="تصميم البطاقة">
-                {cardTemplates.map((template) => {
-                  const isSelected = selectedTemplate === template.id;
-
-                  return (
-                    <button
-                      key={template.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      aria-label={`تصميم ${template.name}`}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`focus-ring relative min-w-0 rounded-[1.2rem] border p-1.5 text-right transition-[border-color,box-shadow,transform] duration-200 ${
-                        isSelected
-                          ? "border-[#9C7C42] shadow-[0_0_0_3px_rgba(156,124,66,0.16)]"
-                          : "border-[#E6DDC8] hover:border-[#C9AF7C]"
-                      }`}
-                    >
-                      {isSelected ? (
-                        <span className="pop-in absolute -top-1.5 -right-1.5 z-10 grid size-6 place-items-center rounded-full bg-[#14312B] text-white shadow-[0_2px_6px_rgba(20,49,43,0.4)]">
-                          <IconCheck className="size-3.5" />
-                        </span>
-                      ) : null}
-                      <CardTemplatePreview
-                        template={template}
-                        groomName={weddingConfig.groomName}
-                        guestName={guestName}
-                        message={message}
-                        compact
-                      />
-                      <span className="my-2 block truncate px-1 text-center text-sm font-bold text-[#26473F]">
-                        {template.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={generateCard}
-                disabled={isGenerating}
-                className="focus-ring mt-7 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99] disabled:cursor-wait disabled:opacity-65"
-              >
-                {isGenerating ? (
-                  <>
-                    <IconSpinner className="size-5" />
-                    جارٍ تجهيز البطاقة
-                  </>
-                ) : (
-                  "معاينة البطاقة"
-                )}
-              </button>
-              {cardStatus ? (
-                <p className="mt-3 text-center text-sm text-[#A3453C]" role="alert">
-                  {cardStatus}
-                </p>
-              ) : null}
             </>
           ) : null}
 

@@ -97,8 +97,10 @@ body {
   opacity: 0.5;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%239c7c42' stroke-width='1' stroke-opacity='0.14'%3E%3Cpath d='M36 6l9 9-9 9-9-9z'/%3E%3Cpath d='M36 42l9 9-9 9-9-9z'/%3E%3Cpath d='M0 36l9-9 9 9-9 9z'/%3E%3Cpath d='M54 36l9-9 9 9-9 9z'/%3E%3Ccircle cx='36' cy='36' r='3'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 72px 72px;
+  background-position: var(--parallax-x, 0px) var(--parallax-y, 0px);
   -webkit-mask-image: radial-gradient(circle at 50% 34%, #000 0%, transparent 72%);
   mask-image: radial-gradient(circle at 50% 34%, #000 0%, transparent 72%);
+  transition: background-position 220ms ease-out;
 }
 
 button,
@@ -149,6 +151,80 @@ a {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Directional step transitions. In RTL, advancing moves content leftward. */
+.enter-fwd {
+  animation: enter-fwd 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.enter-back {
+  animation: enter-back 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes enter-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Live card preview entrance. */
+.card-reveal {
+  animation: card-reveal 560ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.swatch-pop {
+  animation: swatch-pop 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes swatch-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Staged load entrance delays. */
+.stagger-1 {
+  animation-delay: 60ms;
+}
+.stagger-2 {
+  animation-delay: 160ms;
+}
+.stagger-3 {
+  animation-delay: 260ms;
 }
 
 .pop-in {
@@ -263,5 +339,9 @@ a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .ornament-field::before {
+    background-position: 0 0 !important;
   }
 }
