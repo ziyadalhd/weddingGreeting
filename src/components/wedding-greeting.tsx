@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import {
-  type FormEvent,
-  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
   useEffect,
   useId,
   useRef,
@@ -24,70 +23,12 @@ import {
   formatGreetingMessage,
 } from "@/lib/message-links";
 
-type Step = "compose" | "method" | "text" | "card";
-type Direction = "fwd" | "back";
-type FieldErrors = { name?: string; message?: string };
+type Phase = "composing" | "sealed";
 type ContactKind = "phone" | "email";
-
-const previewNameFallback = "اسمك";
-const previewMessageFallback = "ستظهر تهنئتك هنا";
-
-const maxNameLength = 50;
-const maxMessageLength = 280;
 
 const displayFont = { fontFamily: '"Thmanyah Serif Display", "Thmanyah Sans", serif' };
 
-function toArabicNumerals(value: number): string {
-  const digits = "٠١٢٣٤٥٦٧٨٩";
-  return String(value).replace(/\d/g, (d) => digits[Number(d)]);
-}
-
-type CrestProps = { size?: "sm" | "lg"; reveal?: boolean };
-
-function Crest({ size = "sm", reveal = false }: CrestProps) {
-  const dimension = size === "lg" ? "size-16 text-[2rem]" : "size-9 text-[1.15rem]";
-
-  return (
-    <span
-      aria-hidden="true"
-      className={`crest ${reveal ? "crest-reveal" : ""} ${dimension} font-bold leading-none`}
-      style={displayFont}
-    >
-      و
-    </span>
-  );
-}
-
 type IconProps = { className?: string };
-
-function IconMessage({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path
-        d="M4.5 5.5h15a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1H10l-4.4 3.3a.5.5 0 0 1-.8-.4v-2.9h-.3a1 1 0 0 1-1-1v-9.5a1 1 0 0 1 1-1Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconCard({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <rect x="4" y="5.5" width="16" height="14" rx="2.2" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d="M9.5 5.5V4.3a2.5 2.5 0 0 1 5 0v1.2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path d="M8 15.2c1.1-1.4 2.3-1.4 4-.3 1.7-1.1 2.9-1.1 4 .3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function IconSend({ className }: IconProps) {
   return (
@@ -108,6 +49,20 @@ function IconMail({ className }: IconProps) {
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
       <rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" strokeWidth="1.6" />
       <path d="m4.2 7 7.8 5.6L19.8 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconMessage({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M4.5 5.5h15a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1H10l-4.4 3.3a.5.5 0 0 1-.8-.4v-2.9h-.3a1 1 0 0 1-1-1v-9.5a1 1 0 0 1 1-1Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -143,117 +98,15 @@ function IconSpinner({ className }: IconProps) {
   );
 }
 
-type StepHeaderProps = {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-};
-
-function StepHeader({ eyebrow, title, description }: StepHeaderProps) {
+function Crest() {
   return (
-    <header>
-      {eyebrow ? (
-        <p className="eyebrow mb-3 flex items-center gap-2 text-xs font-bold text-[#9C7C42]">
-          <span aria-hidden="true" className="h-px w-4 bg-[#9C7C42]/60" />
-          {eyebrow}
-        </p>
-      ) : null}
-      <h1
-        className="text-[2rem] leading-[1.24] font-bold tracking-[-0.02em] text-[#14312B] sm:text-[2.3rem]"
-        style={displayFont}
-      >
-        {title}
-      </h1>
-      {description ? (
-        <p className="mt-3 max-w-md text-[0.98rem] leading-7 text-[#5C645E]">
-          {description}
-        </p>
-      ) : null}
-    </header>
-  );
-}
-
-
-type BackButtonProps = { onClick: () => void };
-
-function BackButton({ onClick }: BackButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring -mr-2 inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm font-medium text-[#666F68] transition-colors hover:text-[#14312B]"
+    <span
+      aria-hidden="true"
+      className="crest size-9 text-[1.15rem] font-bold leading-none"
+      style={displayFont}
     >
-      <span aria-hidden="true" className="text-base leading-none">→</span>
-      رجوع
-    </button>
-  );
-}
-
-type ChoiceButtonProps = {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-  disabled?: boolean;
-};
-
-function ChoiceButton({
-  icon,
-  title,
-  description,
-  onClick,
-  disabled = false,
-}: ChoiceButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="focus-ring group flex min-h-28 w-full items-center gap-4 rounded-3xl border border-[#E6DDC8] bg-white p-5 text-right shadow-[0_1px_2px_rgba(20,49,43,0.04)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#C9AF7C] hover:shadow-[0_16px_32px_-16px_rgba(20,49,43,0.22)] active:translate-y-0 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:border-[#E6DDC8] disabled:hover:shadow-[0_1px_2px_rgba(20,49,43,0.04)]"
-    >
-      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#9C7C42]/12 text-[#14312B] transition-colors group-hover:bg-[#9C7C42]/18">
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-lg font-bold text-[#14312B]">{title}</span>
-        <span className="mt-1 block text-sm leading-6 text-[#737A74]">
-          {description}
-        </span>
-      </span>
-      <span
-        aria-hidden="true"
-        className="text-lg text-[#9C7C42] transition-transform duration-200 group-hover:-translate-x-1"
-      >
-        ←
-      </span>
-    </button>
-  );
-}
-
-function ProgressMark({ step }: { step: Step }) {
-  const position = step === "compose" ? 1 : step === "method" ? 2 : 3;
-
-  return (
-    <div
-      className="flex items-center gap-2.5"
-      aria-label={`الخطوة ${position} من 3`}
-    >
-      <span className="text-xs font-bold tabular-nums text-[#9C7C42]" aria-hidden="true">
-        {toArabicNumerals(position)}
-        <span className="mx-1 text-[#C9AF7C]">/</span>
-        <span className="text-[#B7AE9A]">{toArabicNumerals(3)}</span>
-      </span>
-      <span className="flex items-center gap-1.5" aria-hidden="true">
-        {[1, 2, 3].map((item) => (
-          <span
-            key={item}
-            className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out ${
-              item === position ? "w-6 bg-[#9C7C42]" : "w-1.5 bg-[#E6DDC8]"
-            }`}
-          />
-        ))}
-      </span>
-    </div>
+      و
+    </span>
   );
 }
 
@@ -281,10 +134,7 @@ function ShareChoiceHint({
         <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E6DDC8] bg-white pr-3">
           <span className="min-w-0">
             <span className="block text-xs text-[#7A807B]">رقم عبدالله</span>
-            <bdi
-              dir="ltr"
-              className="block select-all text-sm font-bold text-[#294B43]"
-            >
+            <bdi dir="ltr" className="block select-all text-sm font-bold text-[#294B43]">
               {weddingConfig.whatsappDisplayNumber}
             </bdi>
           </span>
@@ -292,11 +142,7 @@ function ShareChoiceHint({
             type="button"
             onClick={() => onCopy("phone")}
             className="focus-ring flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
-            aria-label={
-              copiedContact === "phone"
-                ? "تم نسخ رقم عبدالله"
-                : "نسخ رقم عبدالله"
-            }
+            aria-label={copiedContact === "phone" ? "تم نسخ رقم عبدالله" : "نسخ رقم عبدالله"}
           >
             {copiedContact === "phone" ? (
               <>
@@ -312,10 +158,7 @@ function ShareChoiceHint({
         <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E6DDC8] bg-white pr-3">
           <span className="min-w-0 overflow-hidden">
             <span className="block text-xs text-[#7A807B]">إيميل عبدالله</span>
-            <bdi
-              dir="ltr"
-              className="block select-all truncate text-sm font-bold text-[#294B43]"
-            >
+            <bdi dir="ltr" className="block select-all truncate text-sm font-bold text-[#294B43]">
               {weddingConfig.email}
             </bdi>
           </span>
@@ -323,11 +166,7 @@ function ShareChoiceHint({
             type="button"
             onClick={() => onCopy("email")}
             className="focus-ring flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
-            aria-label={
-              copiedContact === "email"
-                ? "تم نسخ إيميل عبدالله"
-                : "نسخ إيميل عبدالله"
-            }
+            aria-label={copiedContact === "email" ? "تم نسخ إيميل عبدالله" : "نسخ إيميل عبدالله"}
           >
             {copiedContact === "email" ? (
               <>
@@ -342,11 +181,7 @@ function ShareChoiceHint({
       </div>
 
       <p
-        className={
-          copyStatus
-            ? "px-1 pt-2 text-xs leading-5 text-[#69736C]"
-            : "sr-only"
-        }
+        className={copyStatus ? "px-1 pt-2 text-xs leading-5 text-[#69736C]" : "sr-only"}
         aria-live="polite"
       >
         {copyStatus}
@@ -356,185 +191,184 @@ function ShareChoiceHint({
 }
 
 export function WeddingGreeting() {
-  const [step, setStep] = useState<Step>("compose");
-  const [direction, setDirection] = useState<Direction>("fwd");
+  const [phase, setPhase] = useState<Phase>("composing");
   const [guestName, setGuestName] = useState("");
   const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<CardTemplateId>("ivory");
+  const [selectedTemplate, setSelectedTemplate] = useState<CardTemplateId>("ivory");
+  const [sealError, setSealError] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
   const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
-  const [canShareFiles, setCanShareFiles] = useState<boolean | null>(null);
+  const [showSaveFallback, setShowSaveFallback] = useState(false);
+  const [showTextDelivery, setShowTextDelivery] = useState(false);
   const [cardStatus, setCardStatus] = useState("");
   const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
   const [isImageExpanded, setIsImageExpanded] = useState(false);
 
-  const nameId = useId();
   const messageId = useId();
-  const nameRef = useRef<HTMLInputElement>(null);
+  const nameId = useId();
   const messageRef = useRef<HTMLTextAreaElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const closeImageRef = useRef<HTMLButtonElement>(null);
+  const swipeStartX = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
-      if (generatedUrl) {
-        URL.revokeObjectURL(generatedUrl);
-      }
+      if (generatedUrl) URL.revokeObjectURL(generatedUrl);
     };
   }, [generatedUrl]);
 
   useEffect(() => {
-    if (isImageExpanded) {
-      closeImageRef.current?.focus();
-    }
+    if (isImageExpanded) closeImageRef.current?.focus();
   }, [isImageExpanded]);
-
-  function goTo(next: Step, dir: Direction) {
-    setDirection(dir);
-    setStep(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function handleParallax(event: React.PointerEvent<HTMLDivElement>) {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const { innerWidth, innerHeight } = window;
-    const x = (event.clientX / innerWidth - 0.5) * -20;
-    const y = (event.clientY / innerHeight - 0.5) * -20;
-    const target = event.currentTarget;
-    target.style.setProperty("--parallax-x", `${x.toFixed(1)}px`);
-    target.style.setProperty("--parallax-y", `${y.toFixed(1)}px`);
-  }
 
   const formattedMessage = formatGreetingMessage({
     guestName,
     message,
     groomName: weddingConfig.groomName,
   });
-  const whatsappUrl = buildWhatsAppUrl(
-    weddingConfig.whatsappNumber,
-    formattedMessage,
-  );
+  const whatsappUrl = buildWhatsAppUrl(weddingConfig.whatsappNumber, formattedMessage);
   const emailUrl = buildEmailUrl(
     weddingConfig.email,
     weddingConfig.emailSubject,
     formattedMessage,
   );
 
-  function handleComposeSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function triggerShake() {
+    setIsShaking(false);
+    requestAnimationFrame(() => setIsShaking(true));
+  }
 
-    const nextErrors: FieldErrors = {};
+  function discardGeneratedCard() {
+    setGeneratedBlob(null);
+    setGeneratedUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setShowSaveFallback(false);
+  }
+
+  function handleSeal() {
+    if (message.trim().length < 5) {
+      setSealError("اكتب كلمتك لعبدالله أول");
+      messageRef.current?.focus();
+      triggerShake();
+      return;
+    }
 
     if (guestName.trim().length < 2) {
-      nextErrors.name = "اكتب اسمك أولًا";
-    }
-
-    if (message.trim().length < 5) {
-      nextErrors.message = "اكتب تهنئتك لعبدالله";
-    }
-
-    setErrors(nextErrors);
-
-    if (nextErrors.name) {
+      setSealError("وقّع البطاقة باسمك");
       nameRef.current?.focus();
+      triggerShake();
       return;
     }
 
-    if (nextErrors.message) {
-      messageRef.current?.focus();
-      return;
-    }
-
+    setSealError(null);
     setGuestName(guestName.trim());
     setMessage(message.trim());
-    goTo("method", "fwd");
+    setPhase("sealed");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function goBack() {
-    setCardStatus("");
+  function editGreeting() {
+    discardGeneratedCard();
+    setShowTextDelivery(false);
     setCopiedContact(null);
     setCopyStatus("");
-
-    if (step === "method") goTo("compose", "back");
-    if (step === "text") goTo("method", "back");
-    if (step === "card") {
-      setIsImageExpanded(false);
-      goTo("method", "back");
-    }
+    setCardStatus("");
+    setPhase("composing");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function generateCard() {
+  function changeTemplate(id: CardTemplateId) {
+    if (phase !== "composing") return;
+    setSelectedTemplate(id);
+  }
+
+  function stepTemplate(delta: number) {
+    const index = cardTemplates.findIndex((item) => item.id === selectedTemplate);
+    const next = (index + delta + cardTemplates.length) % cardTemplates.length;
+    setSelectedTemplate(cardTemplates[next].id);
+  }
+
+  function handleSwipeStart(event: ReactPointerEvent<HTMLDivElement>) {
+    if (phase !== "composing") return;
+    swipeStartX.current = event.clientX;
+  }
+
+  function handleSwipeEnd(event: ReactPointerEvent<HTMLDivElement>) {
+    if (phase !== "composing" || swipeStartX.current === null) return;
+    const dx = event.clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    stepTemplate(dx < 0 ? 1 : -1);
+  }
+
+  function handleParallax(event: ReactPointerEvent<HTMLDivElement>) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { innerWidth, innerHeight } = window;
+    const x = (event.clientX / innerWidth - 0.5) * -20;
+    const y = (event.clientY / innerHeight - 0.5) * -20;
+    event.currentTarget.style.setProperty("--parallax-x", `${x.toFixed(1)}px`);
+    event.currentTarget.style.setProperty("--parallax-y", `${y.toFixed(1)}px`);
+  }
+
+  async function shareGreetingCard() {
     setIsGenerating(true);
     setCardStatus("");
 
     try {
-      const blob = await renderGreetingCard({
-        template: getCardTemplate(selectedTemplate),
-        groomName: weddingConfig.groomName,
-        guestName,
-        message,
-      });
-      const file = new File([blob], "tahnia-abdullah.png", {
-        type: "image/png",
-      });
+      let blob = generatedBlob;
+      if (!blob) {
+        blob = await renderGreetingCard({
+          template: getCardTemplate(selectedTemplate),
+          groomName: weddingConfig.groomName,
+          guestName,
+          message,
+        });
+        setGeneratedBlob(blob);
+        setGeneratedUrl(URL.createObjectURL(blob));
+      }
+
+      const file = new File([blob], "tahnia-abdullah.png", { type: "image/png" });
       const sharingIsSupported =
         typeof navigator.share === "function" &&
         typeof navigator.canShare === "function" &&
         navigator.canShare({ files: [file] });
 
-      setGeneratedBlob(blob);
-      setGeneratedUrl(URL.createObjectURL(blob));
-      setCanShareFiles(sharingIsSupported);
-      goTo("card", "fwd");
-    } catch {
-      setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
+      if (sharingIsSupported) {
+        await navigator.share({
+          files: [file],
+          title: `تهنئة لـ${weddingConfig.groomName}`,
+          text: formattedMessage,
+        });
+        setCardStatus("فُتحت خيارات المشاركة.");
+      } else {
+        setShowSaveFallback(true);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShowSaveFallback(true);
+      setCardStatus(
+        "تعذرت المشاركة المباشرة. كبّر البطاقة واحفظها في الصور، ثم شاركها من جهازك.",
+      );
     } finally {
       setIsGenerating(false);
     }
   }
 
-  async function shareCard() {
-    if (!generatedBlob) return;
-
-    const file = new File([generatedBlob], "tahnia-abdullah.png", {
-      type: "image/png",
-    });
-
-    try {
-      await navigator.share({
-        files: [file],
-        title: `تهنئة لـ${weddingConfig.groomName}`,
-        text: formattedMessage,
-      });
-      setCardStatus("فُتحت خيارات المشاركة.");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
-      }
-
-      setCanShareFiles(false);
-      setCardStatus(
-        "تعذرت المشاركة المباشرة. كبّر البطاقة واحفظها في الصور، ثم شاركها من جهازك.",
-      );
-    }
-  }
-
   async function copyContact(kind: ContactKind) {
     const value =
-      kind === "phone"
-        ? weddingConfig.whatsappDisplayNumber
-        : weddingConfig.email;
+      kind === "phone" ? weddingConfig.whatsappDisplayNumber : weddingConfig.email;
     const label = kind === "phone" ? "رقم عبدالله" : "إيميل عبدالله";
 
     try {
       if (!navigator.clipboard?.writeText) {
         throw new Error("Clipboard API is unavailable");
       }
-
       await navigator.clipboard.writeText(value);
       setCopiedContact(kind);
       setCopyStatus(`تم نسخ ${label}`);
@@ -544,317 +378,238 @@ export function WeddingGreeting() {
     }
   }
 
+  const composing = phase === "composing";
+
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col overflow-x-clip sm:min-h-0 sm:py-10">
       <div
         onPointerMove={handleParallax}
         className="ornament-field app-shell flex flex-1 flex-col sm:rounded-[2rem] sm:border sm:border-[#E6DDC8] sm:bg-white sm:px-9 sm:pt-8 sm:pb-9 sm:shadow-[0_1px_2px_rgba(20,49,43,0.04),0_28px_60px_-24px_rgba(20,49,43,0.2)]"
       >
-        <div className="flex min-h-11 items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Crest />
-            <p className="text-sm font-bold tracking-[-0.01em] text-[#14312B]">
-              تهنئة لعبدالله
-            </p>
-          </div>
-          <ProgressMark step={step} />
+        <div className="flex min-h-11 items-center gap-2.5">
+          <Crest />
+          <p className="text-sm font-bold tracking-[-0.01em] text-[#14312B]">
+            تهنئة لعبدالله
+          </p>
         </div>
 
-        <section
-          key={step}
-          className={`${direction === "fwd" ? "enter-fwd" : "enter-back"} flex flex-1 flex-col pt-8 pb-2 sm:justify-center sm:py-10`}
-        >
-          {step === "compose" ? (
-            <>
-              <header className="flex flex-col items-center text-center">
-                <Crest size="lg" reveal />
-                <p className="eyebrow mt-5 text-xs font-bold text-[#9C7C42]">
-                  تهنئة بمناسبة الزواج
-                </p>
-                <h1
-                  className="mt-2 text-[1.9rem] leading-[1.2] font-bold tracking-[-0.02em] text-[#14312B]"
-                  style={displayFont}
-                >
-                  اكتب تهنئتك لعبدالله
-                </h1>
-              </header>
+        <section className="flex flex-1 flex-col pt-6 pb-2 sm:justify-center sm:py-8">
+          <header className="text-center">
+            <p className="eyebrow text-xs font-bold text-[#9C7C42]">
+              {composing ? "تهنئة بمناسبة الزواج" : "تهنئتك جاهزة"}
+            </p>
+            <h1
+              className="mt-2 text-[1.6rem] leading-[1.25] font-bold tracking-[-0.02em] text-[#14312B] sm:text-[1.9rem]"
+              style={displayFont}
+            >
+              {composing ? "اكتب تهنئتك على البطاقة" : "وقّعتها وختمتها"}
+            </h1>
+          </header>
 
-              <div className="card-reveal mx-auto mt-7 w-full max-w-[15rem]">
-                <div className="overflow-hidden rounded-[1.5rem] shadow-[0_1px_2px_rgba(20,49,43,0.06),0_20px_44px_-18px_rgba(20,49,43,0.3)]">
-                  <CardTemplatePreview
-                    template={getCardTemplate(selectedTemplate)}
-                    groomName={weddingConfig.groomName}
-                    guestName={guestName.trim() || previewNameFallback}
-                    message={message.trim() || previewMessageFallback}
-                    placeholderName={!guestName.trim()}
-                    placeholderMessage={!message.trim()}
-                  />
+          <div className="card-reveal mx-auto mt-6 w-full max-w-[17rem]">
+            <div
+              onPointerDown={handleSwipeStart}
+              onPointerUp={handleSwipeEnd}
+              onAnimationEnd={() => isShaking && setIsShaking(false)}
+              className={`overflow-hidden rounded-[1.5rem] shadow-[0_1px_2px_rgba(20,49,43,0.06),0_22px_48px_-18px_rgba(20,49,43,0.32)] ${
+                isShaking ? "card-shake" : ""
+              } ${composing ? "touch-pan-y" : ""}`}
+            >
+              <CardTemplatePreview
+                editable
+                locked={!composing}
+                sealed={!composing}
+                template={getCardTemplate(selectedTemplate)}
+                groomName={weddingConfig.groomName}
+                guestName={guestName}
+                message={message}
+                messageId={messageId}
+                nameId={nameId}
+                messageRef={messageRef}
+                nameRef={nameRef}
+                onMessageChange={(value) => {
+                  setMessage(value);
+                  if (sealError) setSealError(null);
+                }}
+                onNameChange={(value) => {
+                  setGuestName(value);
+                  if (sealError) setSealError(null);
+                }}
+                messagePlaceholder="اكتب كلمتك لعبدالله هنا…"
+                namePlaceholder="اسمك"
+              />
+            </div>
+          </div>
+
+          {sealError ? (
+            <p className="mt-3 text-center text-sm font-medium text-[#A3453C]" role="alert">
+              {sealError}
+            </p>
+          ) : null}
+
+          {composing ? (
+            <>
+              <div className="mt-6 flex flex-col items-center gap-2.5">
+                <div
+                  role="radiogroup"
+                  aria-label="تصميم البطاقة"
+                  className="flex items-center gap-3.5"
+                >
+                  {cardTemplates.map((template) => {
+                    const isSelected = selectedTemplate === template.id;
+
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isSelected}
+                        aria-label={`تصميم ${template.name}`}
+                        onClick={() => changeTemplate(template.id)}
+                        className="focus-ring grid place-items-center rounded-full p-1"
+                      >
+                        <span
+                          className={`block rounded-full ring-1 ring-inset ring-black/10 transition-all duration-200 ${
+                            isSelected
+                              ? "size-4 shadow-[0_0_0_2px_#FFFFFF,0_0_0_4px_#9C7C42]"
+                              : "size-3"
+                          }`}
+                          style={{ backgroundColor: template.background }}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
+                <p className="text-xs text-[#9C8A6A]">اسحب البطاقة لتغيّر التصميم</p>
               </div>
 
-              <div
-                className="mt-5 flex items-center justify-center gap-2.5"
-                role="radiogroup"
-                aria-label="تصميم البطاقة"
+              <button
+                type="button"
+                onClick={handleSeal}
+                className="focus-ring group mt-7 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
               >
-                {cardTemplates.map((template) => {
-                  const isSelected = selectedTemplate === template.id;
-
-                  return (
-                    <button
-                      key={template.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      aria-label={`تصميم ${template.name}`}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={`focus-ring flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-bold transition-[border-color,background-color] duration-200 ${
-                        isSelected
-                          ? "swatch-pop border-[#9C7C42] bg-[#9C7C42]/10 text-[#14312B]"
-                          : "border-[#E6DDC8] text-[#737A74] hover:border-[#C9AF7C]"
-                      }`}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="size-3.5 rounded-full ring-1 ring-inset ring-black/10"
-                        style={{ backgroundColor: template.background }}
-                      />
-                      {template.name}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <form className="mt-7 space-y-6" onSubmit={handleComposeSubmit} noValidate>
-                <div>
-                  <label
-                    htmlFor={nameId}
-                    className="mb-2 block text-sm font-bold text-[#26473F]"
-                  >
-                    اسمك
-                  </label>
-                  <input
-                    ref={nameRef}
-                    id={nameId}
-                    name="guestName"
-                    type="text"
-                    value={guestName}
-                    onChange={(event) => {
-                      setGuestName(event.target.value);
-                      if (errors.name) setErrors((current) => ({ ...current, name: undefined }));
-                    }}
-                    maxLength={maxNameLength}
-                    autoComplete="name"
-                    enterKeyHint="next"
-                    placeholder="اكتب اسمك"
-                    aria-invalid={Boolean(errors.name)}
-                    aria-describedby={errors.name ? `${nameId}-error` : undefined}
-                    className="focus-ring min-h-14 w-full rounded-2xl border border-[#E6DDC8] bg-[#FAF6EC] px-4 text-base text-[#14312B] transition-colors placeholder:text-[#A8AAA5] focus:border-[#9C7C42] focus:bg-white focus:outline-none"
-                  />
-                  {errors.name ? (
-                    <p id={`${nameId}-error`} className="mt-2 text-sm text-[#A3453C]">
-                      {errors.name}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div>
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <label htmlFor={messageId} className="text-sm font-bold text-[#26473F]">
-                      تهنئتك لعبدالله
-                    </label>
-                    <span className="text-xs tabular-nums text-[#8A8E89]" aria-live="polite">
-                      {message.length}/{maxMessageLength}
-                    </span>
-                  </div>
-                  <textarea
-                    ref={messageRef}
-                    id={messageId}
-                    name="message"
-                    value={message}
-                    onChange={(event) => {
-                      setMessage(event.target.value);
-                      if (errors.message) {
-                        setErrors((current) => ({ ...current, message: undefined }));
-                      }
-                    }}
-                    maxLength={maxMessageLength}
-                    rows={5}
-                    enterKeyHint="done"
-                    placeholder="مثلاً: الله يبارك لكما ويجمع بينكما بخير"
-                    aria-invalid={Boolean(errors.message)}
-                    aria-describedby={errors.message ? `${messageId}-error` : undefined}
-                    className="focus-ring min-h-36 w-full resize-none rounded-2xl border border-[#E6DDC8] bg-[#FAF6EC] px-4 py-3 text-base leading-7 text-[#14312B] transition-colors placeholder:text-[#A8AAA5] focus:border-[#9C7C42] focus:bg-white focus:outline-none"
-                  />
-                  {errors.message ? (
-                    <p id={`${messageId}-error`} className="mt-2 text-sm text-[#A3453C]">
-                      {errors.message}
-                    </p>
-                  ) : null}
-                </div>
-
-                <button
-                  type="submit"
-                  className="focus-ring min-h-14 w-full rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform,box-shadow] duration-200 hover:bg-[#1B4038] active:scale-[0.99] active:bg-[#0F2620]"
+                <span
+                  className="grid size-8 place-items-center rounded-full border border-[#C9AF7C]/70 text-[#E7D3A5] transition-transform duration-200 group-active:scale-90"
+                  style={displayFont}
+                  aria-hidden="true"
                 >
-                  متابعة
-                </button>
-              </form>
+                  و
+                </span>
+                اختم التهنئة وأرسلها
+              </button>
             </>
-          ) : null}
-
-          {step === "method" ? (
+          ) : (
             <>
-              <BackButton onClick={goBack} />
-              <div className="mt-5">
-                <StepHeader
-                  eyebrow={`مرحبًا ${guestName}`}
-                  title="كيف تود إرسال تهنئتك؟"
-                  description="اختر رسالة نصية أو بطاقة تهنئة."
-                />
-              </div>
-              <div className="mt-8 space-y-3.5">
-                <ChoiceButton
-                  icon={<IconMessage className="size-6" />}
-                  title="رسالة نصية"
-                  description="أرسل تهنئتك عبر واتساب أو الإيميل"
-                  onClick={() => goTo("text", "fwd")}
-                  disabled={isGenerating}
-                />
-                <ChoiceButton
-                  icon={
-                    isGenerating ? (
-                      <IconSpinner className="size-6" />
-                    ) : (
-                      <IconCard className="size-6" />
-                    )
-                  }
-                  title={isGenerating ? "جارٍ تجهيز بطاقتك" : "بطاقة تهنئة"}
-                  description="شارك بطاقتك المصمّمة من جوالك"
-                  onClick={generateCard}
-                  disabled={isGenerating}
-                />
-              </div>
-              {cardStatus ? (
-                <p className="mt-3 text-center text-sm text-[#A3453C]" role="alert">
-                  {cardStatus}
-                </p>
-              ) : null}
-            </>
-          ) : null}
-
-          {step === "text" ? (
-            <>
-              <BackButton onClick={goBack} />
-              <div className="mt-5">
-                <StepHeader
-                  eyebrow="رسالتك جاهزة"
-                  title="أرسل تهنئتك لعبدالله"
-                  description="ستفتح الرسالة جاهزة، ويبقى عليك مراجعتها وإرسالها."
-                />
-              </div>
-
-              <div className="mt-7 rounded-3xl border border-[#E6DDC8] bg-white p-5 shadow-[0_1px_2px_rgba(20,49,43,0.04)]">
-                <p className="whitespace-pre-wrap text-[0.98rem] leading-8 text-[#294B43]">
-                  {formattedMessage}
-                </p>
-              </div>
-
-              {weddingConfig.contactDetailsArePlaceholders ? (
-                <p className="mt-3 rounded-xl bg-[#9C7C42]/12 px-3 py-2 text-xs leading-5 text-[#735F3E]">
-                  تنبيه للمطوّر: بيانات التواصل تجريبية وتحتاج تحديث قبل النشر.
-                </p>
-              ) : null}
-
-              <div className="mt-6 space-y-3">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
-                >
-                  <IconSend className="size-5" />
-                  إرسال على واتساب
-                </a>
-                <a
-                  href={emailUrl}
-                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[#E6DDC8] bg-white px-5 text-base font-bold text-[#23463E] transition-[border-color,background-color] duration-200 hover:border-[#C9AF7C] hover:bg-[#FAF6EC] active:scale-[0.99]"
-                >
-                  <IconMail className="size-5" />
-                  إرسال بالإيميل
-                </a>
-              </div>
-            </>
-          ) : null}
-
-          {step === "card" && generatedUrl ? (
-            <>
-              <BackButton onClick={goBack} />
-              <div className="mt-5">
-                <StepHeader
-                  eyebrow="بطاقتك جاهزة"
-                  title="راجع البطاقة وشاركها"
-                  description="يمكنك مشاركتها مباشرة، أو تكبيرها وحفظها في الصور."
-                />
-              </div>
-
-              <div className="relative mx-auto mt-7 w-full max-w-[23rem] overflow-hidden rounded-[1.6rem] shadow-[0_1px_2px_rgba(20,49,43,0.06),0_24px_60px_-16px_rgba(20,49,43,0.28)]">
-                <Image
-                  src={generatedUrl}
-                  alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
-                  width={1080}
-                  height={1350}
-                  unoptimized
-                  className="h-auto w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsImageExpanded(true)}
-                  className="focus-ring absolute top-3 left-3 flex min-h-11 items-center gap-1.5 rounded-full border border-white/70 bg-white/95 px-4 text-sm font-bold text-[#23463E] shadow-sm backdrop-blur-sm transition-transform active:scale-95"
-                  aria-label="تكبير البطاقة"
-                >
-                  <IconExpand className="size-4" />
-                  تكبير
-                </button>
-              </div>
-
-              <p className="mt-3 text-center text-sm leading-6 text-[#69736C]">
-                لحفظها في ألبوم الصور: كبّر البطاقة، ثم اضغط عليها مطولًا واختر
-                «حفظ الصورة» أو «إضافة إلى الصور» حسب جهازك.
+              <p className="mt-6 text-center text-[0.95rem] leading-7 text-[#5C645E]">
+                كيف توصّلها لعبدالله؟
               </p>
 
-              <div className="mt-7 space-y-3">
-                {canShareFiles ? (
-                  <>
+              <div className="mt-4 space-y-3">
+                <button
+                  type="button"
+                  onClick={shareGreetingCard}
+                  disabled={isGenerating}
+                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99] disabled:cursor-wait disabled:opacity-65"
+                >
+                  {isGenerating ? (
+                    <>
+                      <IconSpinner className="size-5" />
+                      جارٍ تجهيز البطاقة
+                    </>
+                  ) : (
+                    <>
+                      <IconSend className="size-5" />
+                      شاركها بطاقة
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowTextDelivery((current) => !current)}
+                  aria-expanded={showTextDelivery}
+                  className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[#E6DDC8] bg-white px-5 text-base font-bold text-[#23463E] transition-[border-color,background-color] duration-200 hover:border-[#C9AF7C] hover:bg-[#FAF6EC] active:scale-[0.99]"
+                >
+                  <IconMessage className="size-5" />
+                  أرسلها رسالة
+                </button>
+
+                {showTextDelivery ? (
+                  <div className="screen-enter space-y-3 rounded-2xl border border-[#E6DDC8] bg-[#FAF6EC] p-3">
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#14312B] px-4 text-sm font-bold text-white transition-colors hover:bg-[#1B4038]"
+                    >
+                      <IconSend className="size-4" />
+                      واتساب
+                    </a>
+                    <a
+                      href={emailUrl}
+                      className="focus-ring flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#CFC6B7] bg-white px-4 text-sm font-bold text-[#23463E] transition-colors hover:bg-[#F3EEE2]"
+                    >
+                      <IconMail className="size-4" />
+                      إيميل
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+
+              {showSaveFallback && generatedUrl ? (
+                <div className="screen-enter mt-5 space-y-3">
+                  <div className="relative mx-auto w-full max-w-[20rem] overflow-hidden rounded-[1.4rem] shadow-[0_1px_2px_rgba(20,49,43,0.06),0_20px_48px_-18px_rgba(20,49,43,0.3)]">
+                    <Image
+                      src={generatedUrl}
+                      alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
+                      width={1080}
+                      height={1350}
+                      unoptimized
+                      className="h-auto w-full"
+                    />
                     <button
                       type="button"
-                      onClick={shareCard}
-                      className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#14312B] px-5 text-base font-bold text-white shadow-[0_14px_28px_-14px_rgba(20,49,43,0.55)] ring-1 ring-inset ring-[#C9AF7C]/25 transition-[background-color,transform] duration-200 hover:bg-[#1B4038] active:scale-[0.99]"
+                      onClick={() => setIsImageExpanded(true)}
+                      className="focus-ring absolute top-3 left-3 flex min-h-11 items-center gap-1.5 rounded-full border border-white/70 bg-white/95 px-4 text-sm font-bold text-[#23463E] shadow-sm backdrop-blur-sm transition-transform active:scale-95"
+                      aria-label="تكبير البطاقة"
                     >
-                      <IconSend className="size-5" />
-                      مشاركة البطاقة
+                      <IconExpand className="size-4" />
+                      تكبير
                     </button>
-                    <ShareChoiceHint
-                      copiedContact={copiedContact}
-                      copyStatus={copyStatus}
-                      onCopy={copyContact}
-                    />
-                  </>
-                ) : (
-                  <p className="rounded-2xl bg-[#9C7C42]/12 px-4 py-3 text-sm leading-6 text-[#735F3E]">
-                    المشاركة المباشرة غير مدعومة هنا. كبّر البطاقة واحفظها في
-                    الصور، ثم شاركها من جهازك.
+                  </div>
+                  <p className="text-center text-sm leading-6 text-[#69736C]">
+                    كبّر البطاقة، ثم اضغط عليها مطولًا واختر «حفظ الصورة» أو «إضافة إلى
+                    الصور» حسب جهازك.
                   </p>
-                )}
-              </div>
+                </div>
+              ) : null}
+
+              {generatedBlob ? (
+                <div className="mt-4">
+                  <ShareChoiceHint
+                    copiedContact={copiedContact}
+                    copyStatus={copyStatus}
+                    onCopy={copyContact}
+                  />
+                </div>
+              ) : null}
 
               {cardStatus ? (
                 <p className="mt-3 text-center text-sm text-[#69736C]" role="status">
                   {cardStatus}
                 </p>
               ) : null}
+
+              <button
+                type="button"
+                onClick={editGreeting}
+                className="focus-ring mx-auto mt-6 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-[#666F68] transition-colors hover:text-[#14312B]"
+              >
+                <span aria-hidden="true">→</span>
+                عدّل التهنئة
+              </button>
             </>
-          ) : null}
+          )}
         </section>
 
         <footer className="pt-6 text-center text-[11px] text-[#8A8E89]">
