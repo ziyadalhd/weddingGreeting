@@ -149,7 +149,8 @@ export function WeddingGreeting() {
         try {
           await navigator.share({
             files: [file],
-            text: "تهنئتي لعبدالله بمناسبة زواجه",
+            title: "مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي",
+            text: "مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي",
           });
           return;
         } catch (error) {
@@ -480,7 +481,7 @@ export function WeddingGreeting() {
               className="btn btn-secondary ar"
               style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
             >
-              مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي
+              مشاركة الصورة
             </button>
             <button
               type="button"
