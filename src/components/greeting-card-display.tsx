@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 
 import type { CardTemplate } from "@/config/card-templates";
 
@@ -18,7 +18,7 @@ const tickBase: CSSProperties = {
   transform: "rotate(45deg)",
 };
 
-export function GreetingCardDisplay({
+function GreetingCardDisplayComponent({
   template,
   groomName,
   guestName,
@@ -208,3 +208,5 @@ export function GreetingCardDisplay({
     </div>
   );
 }
+
+export const GreetingCardDisplay = memo(GreetingCardDisplayComponent);

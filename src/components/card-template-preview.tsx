@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import type { CardTemplate } from "@/config/card-templates";
 
 type CardTemplatePreviewProps = {
@@ -5,7 +7,7 @@ type CardTemplatePreviewProps = {
   groomName: string;
 };
 
-export function CardTemplatePreview({
+function CardTemplatePreviewComponent({
   template,
   groomName,
 }: CardTemplatePreviewProps) {
@@ -132,3 +134,5 @@ export function CardTemplatePreview({
     </div>
   );
 }
+
+export const CardTemplatePreview = memo(CardTemplatePreviewComponent);

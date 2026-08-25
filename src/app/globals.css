@@ -59,12 +59,15 @@ h4 {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
   min-width: 320px;
   font-size: 15px;
   line-height: 1.55;
   font-weight: 400;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 button,
@@ -209,6 +212,17 @@ textarea.input {
   }
 }
 
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .ar {
   font-family: "IBM Plex Sans Arabic", var(--font-body);
 }
@@ -222,6 +236,9 @@ textarea.input {
   color: var(--color-text);
   display: flex;
   flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
@@ -235,6 +252,7 @@ textarea.input {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  animation: stepIn 220ms ease-out both;
 }
 
 .step-intro {
