@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useId, useRef, useState } from "react";
+import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 
 import { CardTemplatePreview } from "@/components/card-template-preview";
 import { GreetingCardDisplay } from "@/components/greeting-card-display";
@@ -42,6 +42,10 @@ export function WeddingGreeting() {
   const nameId = useId();
   const messageId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [step]);
 
   const template = getCardTemplate(cardStyle);
   const formattedMessage = formatGreetingMessage({ guestName: name, message });
@@ -181,36 +185,9 @@ export function WeddingGreeting() {
   }
 
   return (
-    <div
-      dir="rtl"
-      lang="ar"
-      className="ar"
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        width: "100%",
-        background: "var(--color-bg)",
-        color: "var(--color-text)",
-        display: "flex",
-        flexDirection: "column",
-        boxSizing: "border-box",
-      }}
-    >
+    <div dir="rtl" lang="ar" className="app-shell ar">
       {step === "intro" ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "52px 26px",
-            gap: 16,
-            maxWidth: 480,
-            margin: "0 auto",
-            boxSizing: "border-box",
-            textAlign: "right",
-          }}
-        >
+        <div className="step step-intro">
           <div
             style={{
               height: 3,
@@ -331,19 +308,7 @@ export function WeddingGreeting() {
       ) : null}
 
       {step === "form" ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            padding: "40px 24px",
-            gap: 20,
-            maxWidth: 480,
-            margin: "0 auto",
-            boxSizing: "border-box",
-            width: "100%",
-          }}
-        >
+        <div className="step step-form">
           <div style={{ height: 2, background: "var(--color-accent-700)" }} />
           <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 26 }}>
             تهنئتك لـ{weddingConfig.groomName}
@@ -359,7 +324,11 @@ export function WeddingGreeting() {
             بمناسبة الزواج - {weddingConfig.dateLine}
           </p>
 
-          <form onSubmit={handleFormSubmit} noValidate>
+          <form
+            onSubmit={handleFormSubmit}
+            noValidate
+            style={{ display: "flex", flexDirection: "column", gap: 20 }}
+          >
             <div className="field" style={{ marginTop: 8 }}>
               <label htmlFor={nameId} className="ar">
                 اسمك
@@ -379,7 +348,7 @@ export function WeddingGreeting() {
                 style={{ animation: shake ? "shake 0.4s ease" : "none" }}
               />
             </div>
-            <div className="field" style={{ marginTop: 16 }}>
+            <div className="field">
               <label htmlFor={messageId} className="ar">
                 تهنئتك
               </label>
@@ -406,7 +375,6 @@ export function WeddingGreeting() {
                 fontSize: 16,
                 marginTop: 6,
                 background: "var(--color-accent-700)",
-                width: "100%",
               }}
             >
               التالي: اختر تصميم البطاقة
@@ -415,7 +383,7 @@ export function WeddingGreeting() {
               type="button"
               onClick={backToIntro}
               className="btn btn-ghost ar"
-              style={{ justifyContent: "center", width: "100%", marginTop: 8 }}
+              style={{ justifyContent: "center" }}
             >
               رجوع
             </button>
@@ -424,25 +392,17 @@ export function WeddingGreeting() {
       ) : null}
 
       {step === "pick" ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            padding: "40px 24px",
-            gap: 16,
-            maxWidth: 480,
-            margin: "0 auto",
-            boxSizing: "border-box",
-            width: "100%",
-          }}
-        >
+        <div className="step step-pick">
           <div style={{ height: 2, background: "var(--color-accent-700)" }} />
           <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 24 }}>
             اختر تصميم بطاقتك
           </h2>
 
-          <div role="radiogroup" aria-label="تصميم البطاقة">
+          <div
+            role="radiogroup"
+            aria-label="تصميم البطاقة"
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          >
             {cardTemplates.map((item) => (
               <button
                 key={item.id}
@@ -457,7 +417,6 @@ export function WeddingGreeting() {
                   border: "1px solid var(--color-divider)",
                   display: "flex",
                   overflow: "hidden",
-                  marginTop: 16,
                   width: "100%",
                 }}
               >
@@ -478,19 +437,7 @@ export function WeddingGreeting() {
       ) : null}
 
       {step === "card" ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            padding: "32px 24px",
-            gap: 16,
-            maxWidth: 480,
-            margin: "0 auto",
-            boxSizing: "border-box",
-            width: "100%",
-          }}
-        >
+        <div className="step step-card">
           <GreetingCardDisplay
             template={template}
             groomName={weddingConfig.groomName}

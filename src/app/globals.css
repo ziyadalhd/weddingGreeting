@@ -104,6 +104,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  min-height: 44px;
   cursor: pointer;
   text-decoration: none;
   font-family: var(--font-heading);
@@ -158,10 +159,10 @@ a {
 
 .input {
   width: 100%;
-  min-height: 36px;
-  padding: 6px 10px;
+  min-height: 44px;
+  padding: 10px 12px;
   font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text);
   caret-color: var(--color-accent);
   background: var(--color-surface);
@@ -245,10 +246,68 @@ textarea.input {
 }
 
 .app-shell {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.step-intro {
+  justify-content: center;
+  padding: 52px 26px;
+  gap: 16px;
+  text-align: right;
+}
+
+.step-form {
+  padding: 40px 24px;
+  gap: 20px;
+}
+
+.step-pick {
+  padding: 40px 24px;
+  gap: 16px;
+}
+
+.step-card {
+  padding: 32px 24px;
+  gap: 16px;
+}
+
+@media (max-width: 380px) {
+  .step-intro {
+    padding: 36px 18px;
+  }
+
+  .step-form,
+  .step-pick,
+  .step-card {
+    padding: 28px 18px;
+  }
+}
+
+@media (max-height: 700px) {
+  .step-intro {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
