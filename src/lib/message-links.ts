@@ -1,15 +1,13 @@
 type MessageDetails = {
   guestName: string;
   message: string;
-  groomName: string;
 };
 
 export function formatGreetingMessage({
   guestName,
   message,
-  groomName,
 }: MessageDetails): string {
-  return `إلى ${groomName}،\n\n${message.trim()}\n\nمن: ${guestName.trim()}`;
+  return `${message.trim()}\n- ${guestName.trim()}`;
 }
 
 export function buildWhatsAppUrl(

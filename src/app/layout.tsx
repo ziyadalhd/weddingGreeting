@@ -6,14 +6,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: `تهنئة زواج ${weddingConfig.groomName}`,
-  description: `اكتب تهنئتك لـ${weddingConfig.groomName} وشاركها برسالة أو بطاقة جميلة.`,
+  description: "اكتب تهنئتك لعبدالله وشاركها برسالة أو بطاقة جميلة.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#F5F1E9",
+  themeColor: "#f3f2f2",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
