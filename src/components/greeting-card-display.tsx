@@ -45,21 +45,6 @@ export function GreetingCardDisplay({
             marginBottom: 16,
           }}
         />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 8,
-            marginBottom: 6,
-          }}
-        >
-          <span className="ring-motif">
-            <span className="r" />
-            <span className="l" />
-          </span>
-        </div>
-
         {[
           ["المناسبة", `زواج ${groomName}`, false],
           ["التاريخ", dateLine, false],
@@ -155,10 +140,7 @@ export function GreetingCardDisplay({
 
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          gap: 8,
+          textAlign: "right",
           marginTop: 10,
         }}
       >
@@ -172,10 +154,6 @@ export function GreetingCardDisplay({
           }}
         >
           بمناسبة زواج
-        </span>
-        <span className="ring-motif">
-          <span className="r" />
-          <span className="l" />
         </span>
       </div>
 

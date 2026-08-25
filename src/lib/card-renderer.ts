@@ -67,23 +67,6 @@ function drawFrame(
   }
 }
 
-function drawRings(
-  context: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r: number,
-  color: string,
-) {
-  context.strokeStyle = color;
-  context.lineWidth = 3;
-  context.beginPath();
-  context.arc(cx - r * 0.55, cy, r, 0, Math.PI * 2);
-  context.stroke();
-  context.beginPath();
-  context.arc(cx + r * 0.55, cy, r, 0, Math.PI * 2);
-  context.stroke();
-}
-
 function drawFramedCard(
   context: CanvasRenderingContext2D,
   template: CardTemplate,
@@ -102,7 +85,6 @@ function drawFramedCard(
   context.fillStyle = template.dark ? template.mutedText : template.accent;
   context.font = arFont(600, 26);
   context.fillText("بمناسبة زواج", cardWidth - margin, y);
-  drawRings(context, cardWidth - margin - 220, y - 8, 13, template.accent);
 
   y += nameFontSize === 130 ? 110 : 100;
   context.fillStyle = template.text;
@@ -150,7 +132,6 @@ function drawLedgerCard(
 
   let y = 150;
   context.textAlign = "right";
-  drawRings(context, cardWidth - margin - 20, y - 40, 13, template.accent);
 
   const rows: Array<[string, string]> = [
     ["المناسبة", `زواج ${groomName}`],

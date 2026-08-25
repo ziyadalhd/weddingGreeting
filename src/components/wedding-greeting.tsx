@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 
 import { CardTemplatePreview } from "@/components/card-template-preview";
@@ -38,6 +39,7 @@ export function WeddingGreeting() {
   const [cardStatus, setCardStatus] = useState("");
   const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const nameId = useId();
   const messageId = useId();
@@ -46,6 +48,12 @@ export function WeddingGreeting() {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [step]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const template = getCardTemplate(cardStyle);
   const formattedMessage = formatGreetingMessage({ guestName: name, message });
@@ -111,15 +119,14 @@ export function WeddingGreeting() {
         message,
         dateLine: weddingConfig.dateLine,
       });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.download = cardFileName;
-      link.href = url;
-      link.click();
-      URL.revokeObjectURL(url);
+      setPreviewUrl(URL.createObjectURL(blob));
     } catch {
       setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
     }
+  }
+
+  function closePreview() {
+    setPreviewUrl(null);
   }
 
   async function shareCard() {
@@ -139,7 +146,7 @@ export function WeddingGreeting() {
         try {
           await navigator.share({
             files: [file],
-            text: `تهنئتي لـ${weddingConfig.groomName} بمناسبة زواجه`,
+            text: `تهنئتي ل${weddingConfig.groomName} بمناسبة زواجه`,
           });
           return;
         } catch (error) {
@@ -311,7 +318,7 @@ export function WeddingGreeting() {
         <div className="step step-form">
           <div style={{ height: 2, background: "var(--color-accent-700)" }} />
           <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 26 }}>
-            تهنئتك لـ{weddingConfig.groomName}
+            تهنئتك ل{weddingConfig.groomName}
           </h2>
           <p
             className="ar"
@@ -344,7 +351,7 @@ export function WeddingGreeting() {
                 maxLength={maxNameLength}
                 autoComplete="name"
                 enterKeyHint="next"
-                placeholder="مثال : عبدالله الحضريتي"
+                placeholder="مثال : عبدالله يحيى الحضريتي"
                 style={{ animation: shake ? "shake 0.4s ease" : "none" }}
               />
             </div>
@@ -485,8 +492,13 @@ export function WeddingGreeting() {
             </button>
             <a
               href={emailUrl}
-              className="btn btn-secondary ar"
-              style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
+              className="btn btn-primary ar"
+              style={{
+                justifyContent: "center",
+                padding: "16px 0",
+                fontSize: 16,
+                background: "var(--color-accent-700)",
+              }}
             >
               إرسال كنص عبر الإيميل
             </a>
@@ -644,7 +656,7 @@ export function WeddingGreeting() {
                   color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
                 }}
               >
-                أكمل الإرسال من عندك لتصل تهنئتك لـ{weddingConfig.groomName}.
+                أكمل الإرسال من عندك لتصل تهنئتك ل{weddingConfig.groomName}.
               </div>
             </div>
           ) : null}
@@ -667,6 +679,62 @@ export function WeddingGreeting() {
               تعديل التهنئة
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {previewUrl ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="معاينة البطاقة"
+          onClick={closePreview}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 16,
+            padding: 20,
+            background: "color-mix(in srgb, var(--color-neutral-900) 92%, transparent)",
+          }}
+        >
+          <Image
+            src={previewUrl}
+            alt={`بطاقة تهنئة ل${weddingConfig.groomName} من ${name}`}
+            width={1200}
+            height={1500}
+            unoptimized
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              maxWidth: "min(92vw, 420px)",
+              maxHeight: "70vh",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
+          <p
+            className="ar"
+            style={{
+              margin: 0,
+              textAlign: "center",
+              fontSize: 14,
+              color: "var(--color-bg)",
+            }}
+          >
+            اضغط مطولاً على الصورة لحفظها في ألبوم الصور
+          </p>
+          <button
+            type="button"
+            onClick={closePreview}
+            className="btn btn-ghost ar"
+            style={{ color: "var(--color-bg)" }}
+          >
+            إغلاق
+          </button>
         </div>
       ) : null}
     </div>
