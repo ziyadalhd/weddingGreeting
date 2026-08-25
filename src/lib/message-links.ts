@@ -7,7 +7,7 @@ export function formatGreetingMessage({
   guestName,
   message,
 }: MessageDetails): string {
-  return `تهنئة من ${guestName.trim()}:\n${message.trim()}`;
+  return `${message.trim()}\n- ${guestName.trim()}`;
 }
 
 export function buildWhatsAppShareUrl(message: string): string {

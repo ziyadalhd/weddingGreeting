@@ -146,7 +146,7 @@ export function WeddingGreeting() {
         try {
           await navigator.share({
             files: [file],
-            text: `تهنئتي ل${weddingConfig.groomName} بمناسبة زواجه`,
+            text: "تهنئتي لعبدالله بمناسبة زواجه",
           });
           return;
         } catch (error) {
@@ -318,7 +318,7 @@ export function WeddingGreeting() {
         <div className="step step-form">
           <div style={{ height: 2, background: "var(--color-accent-700)" }} />
           <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 26 }}>
-            تهنئتك ل{weddingConfig.groomName}
+            تهنئتك لعبدالله
           </h2>
           <p
             className="ar"
@@ -656,7 +656,7 @@ export function WeddingGreeting() {
                   color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
                 }}
               >
-                أكمل الإرسال من عندك لتصل تهنئتك ل{weddingConfig.groomName}.
+                أكمل الإرسال من عندك لتصل تهنئتك لعبدالله.
               </div>
             </div>
           ) : null}
@@ -703,7 +703,7 @@ export function WeddingGreeting() {
         >
           <Image
             src={previewUrl}
-            alt={`بطاقة تهنئة ل${weddingConfig.groomName} من ${name}`}
+            alt={`بطاقة تهنئة لعبدالله من ${name}`}
             width={1200}
             height={1500}
             unoptimized

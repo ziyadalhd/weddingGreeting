@@ -7,16 +7,13 @@ import {
   formatGreetingMessage,
 } from "./message-links.ts";
 
-test("formats a WhatsApp greeting and trims user input", () => {
+test("formats the greeting as message then guest name, and trims user input", () => {
   const result = formatGreetingMessage({
     guestName: "  محمد  ",
     message: "  الله يبارك لكما ويجمع بينكما بخير 🤍  ",
   });
 
-  assert.equal(
-    result,
-    "تهنئة من محمد:\nالله يبارك لكما ويجمع بينكما بخير 🤍",
-  );
+  assert.equal(result, "الله يبارك لكما ويجمع بينكما بخير 🤍\n- محمد");
 });
 
 test("builds a WhatsApp share link without a fixed recipient", () => {
