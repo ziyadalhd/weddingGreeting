@@ -3,7 +3,7 @@ import test from "node:test";
 
 import {
   buildEmailUrl,
-  buildWhatsAppShareUrl,
+  buildWhatsAppUrl,
   formatGreetingMessage,
 } from "./message-links.ts";
 
@@ -16,11 +16,12 @@ test("formats the greeting as message then guest name, and trims user input", ()
   assert.equal(result, "الله يبارك لكما ويجمع بينكما بخير 🤍\n- محمد");
 });
 
-test("builds a WhatsApp share link without a fixed recipient", () => {
+test("normalizes the WhatsApp number and preserves Arabic punctuation", () => {
   const message = "مبروك يا عبدالله، الله يسعدكم 🤍";
-  const url = buildWhatsAppShareUrl(message);
+  const url = buildWhatsAppUrl("+966 56 926 4771", message);
 
-  assert.equal(url, `https://wa.me/?text=${encodeURIComponent(message)}`);
+  assert.equal(new URL(url).pathname, "/966569264771");
+  assert.equal(new URL(url).searchParams.get("text"), message);
 });
 
 test("encodes email recipient, subject, and multiline Arabic body", () => {

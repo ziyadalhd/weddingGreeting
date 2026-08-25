@@ -14,7 +14,7 @@ import { weddingConfig } from "@/config/wedding";
 import { renderGreetingCard } from "@/lib/card-renderer";
 import {
   buildEmailUrl,
-  buildWhatsAppShareUrl,
+  buildWhatsAppUrl,
   formatGreetingMessage,
 } from "@/lib/message-links";
 
@@ -57,7 +57,10 @@ export function WeddingGreeting() {
 
   const template = getCardTemplate(cardStyle);
   const formattedMessage = formatGreetingMessage({ guestName: name, message });
-  const whatsappShareUrl = buildWhatsAppShareUrl(formattedMessage);
+  const whatsappUrl = buildWhatsAppUrl(
+    weddingConfig.whatsappNumber,
+    formattedMessage,
+  );
   const emailUrl = buildEmailUrl(
     weddingConfig.email,
     `تهنئة زواج من ${name}`,
@@ -168,7 +171,7 @@ export function WeddingGreeting() {
   }
 
   function sendText() {
-    window.open(whatsappShareUrl, "_blank");
+    window.open(whatsappUrl, "_blank");
     setSent(true);
   }
 
@@ -408,6 +411,7 @@ export function WeddingGreeting() {
           <div
             role="radiogroup"
             aria-label="تصميم البطاقة"
+            className="contain-content"
             style={{ display: "flex", flexDirection: "column", gap: 16 }}
           >
             {cardTemplates.map((item) => (
@@ -454,6 +458,7 @@ export function WeddingGreeting() {
           />
 
           <div
+            className="contain-content"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -475,7 +480,7 @@ export function WeddingGreeting() {
               className="btn btn-secondary ar"
               style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
             >
-              مشاركة الصورة
+              مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي
             </button>
             <button
               type="button"
@@ -505,7 +510,7 @@ export function WeddingGreeting() {
           </div>
 
           <div
-            className="ar"
+            className="ar contain-content"
             style={{
               border: "1px solid var(--color-divider)",
               padding: 14,

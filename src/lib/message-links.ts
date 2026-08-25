@@ -10,8 +10,13 @@ export function formatGreetingMessage({
   return `${message.trim()}\n- ${guestName.trim()}`;
 }
 
-export function buildWhatsAppShareUrl(message: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+export function buildWhatsAppUrl(
+  whatsappNumber: string,
+  message: string,
+): string {
+  const normalizedNumber = whatsappNumber.replace(/\D/g, "");
+
+  return `https://wa.me/${normalizedNumber}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildEmailUrl(
