@@ -20,6 +20,7 @@ import {
 
 type Step = "intro" | "form" | "pick" | "card";
 type ContactKind = "phone" | "email";
+type SentVia = "whatsapp" | "email";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
@@ -35,7 +36,7 @@ export function WeddingGreeting() {
   const [message, setMessage] = useState("");
   const [cardStyle, setCardStyle] = useState<CardTemplateId>("grid");
   const [shake, setShake] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sentVia, setSentVia] = useState<SentVia | null>(null);
   const [cardStatus, setCardStatus] = useState("");
   const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
@@ -76,7 +77,7 @@ export function WeddingGreeting() {
   }
 
   function backToForm() {
-    setSent(false);
+    setSentVia(null);
     setCardStatus("");
     setCopiedContact(null);
     setCopyStatus("");
@@ -84,7 +85,7 @@ export function WeddingGreeting() {
   }
 
   function backToPick() {
-    setSent(false);
+    setSentVia(null);
     setCardStatus("");
     setCopiedContact(null);
     setCopyStatus("");
@@ -173,7 +174,11 @@ export function WeddingGreeting() {
 
   function sendText() {
     window.open(whatsappUrl, "_blank");
-    setSent(true);
+    setSentVia("whatsapp");
+  }
+
+  function sendEmail() {
+    setSentVia("email");
   }
 
   async function copyContact(kind: ContactKind) {
@@ -498,6 +503,7 @@ export function WeddingGreeting() {
             </button>
             <a
               href={emailUrl}
+              onClick={sendEmail}
               className="btn btn-primary ar"
               style={{
                 justifyContent: "center",
@@ -642,7 +648,7 @@ export function WeddingGreeting() {
             </p>
           ) : null}
 
-          {sent ? (
+          {sentVia ? (
             <div
               className="ar"
               style={{
@@ -655,7 +661,9 @@ export function WeddingGreeting() {
                 animation: "riseIn 0.4s ease both",
               }}
             >
-              <div style={{ fontWeight: 700, fontSize: 14 }}>تم فتح واتساب</div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>
+                {sentVia === "whatsapp" ? "تم فتح واتساب" : "تم فتح تطبيق البريد"}
+              </div>
               <div
                 style={{
                   fontSize: 13,
