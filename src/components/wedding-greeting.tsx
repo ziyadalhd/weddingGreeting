@@ -149,8 +149,8 @@ export function WeddingGreeting() {
         try {
           await navigator.share({
             files: [file],
-            title: "مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي",
-            text: "مشاركة الصورة إلى العريس / عبدالله يحيى الحضريتي",
+            title: "إلى العريس / عبدالله يحيى الحضريتي",
+            text: "إلى العريس / عبدالله يحيى الحضريتي",
           });
           return;
         } catch (error) {
