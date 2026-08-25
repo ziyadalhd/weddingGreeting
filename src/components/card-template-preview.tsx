@@ -3,89 +3,131 @@ import type { CardTemplate } from "@/config/card-templates";
 type CardTemplatePreviewProps = {
   template: CardTemplate;
   groomName: string;
-  guestName: string;
-  message: string;
-  compact?: boolean;
 };
 
 export function CardTemplatePreview({
   template,
   groomName,
-  guestName,
-  message,
-  compact = false,
 }: CardTemplatePreviewProps) {
+  const label = `${template.name} — ${template.description}`;
+
+  if (template.id === "poster") {
+    return (
+      <div
+        className="ar"
+        style={{
+          flex: 1,
+          aspectRatio: "5/3",
+          background: "var(--color-neutral-900)",
+          padding: 16,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 4,
+          textAlign: "right",
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 22, color: "var(--color-bg)" }}>
+          {groomName}
+        </div>
+        <div
+          style={{
+            fontSize: 10,
+            color: "color-mix(in srgb, var(--color-bg) 75%, transparent)",
+          }}
+        >
+          {label}
+        </div>
+      </div>
+    );
+  }
+
+  if (template.id === "ledger") {
+    return (
+      <div
+        className="ar"
+        style={{
+          flex: 1,
+          aspectRatio: "5/3",
+          background: "var(--color-surface)",
+          padding: 16,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 6,
+          textAlign: "right",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            borderBottom: "1px solid var(--color-divider)",
+            paddingBottom: 4,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+            }}
+          >
+            المناسبة
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 700 }}>زواج {groomName}</span>
+        </div>
+        <div
+          style={{
+            fontSize: 10,
+            color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+          }}
+        >
+          {label}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.35rem]"
-      style={{ backgroundColor: template.background, color: template.text }}
-      aria-hidden="true"
+      className="ar"
+      style={{
+        position: "relative",
+        flex: 1,
+        aspectRatio: "5/3",
+        background: "var(--color-bg)",
+        padding: 16,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 4,
+        textAlign: "right",
+      }}
     >
       <div
-        className={`absolute inset-[5.5%] ${
-          template.ornament === "frame"
-            ? "border border-current opacity-35"
-            : ""
-        }`}
-        style={{ color: template.accent }}
+        style={{
+          position: "absolute",
+          inset: 6,
+          border: "1px solid var(--color-divider)",
+        }}
       />
-
-      {template.ornament === "arch" ? (
-        <div
-          className="absolute inset-x-[8%] top-[10%] bottom-[7%] rounded-t-[999px] border border-b-0 opacity-50"
-          style={{ borderColor: template.accent }}
-        />
-      ) : null}
-
-      {template.ornament === "corners" ? (
-        <>
-          <span
-            className="absolute -right-8 -top-8 size-20 rounded-full border opacity-45"
-            style={{ borderColor: template.accent }}
-          />
-          <span
-            className="absolute -bottom-8 -left-8 size-20 rounded-full border opacity-45"
-            style={{ borderColor: template.accent }}
-          />
-        </>
-      ) : null}
-
-      <div className="relative z-10 flex h-full flex-col items-center px-[13%] py-[14%] text-center">
-        <p
-          className={`mt-[7%] font-bold ${
-            compact ? "text-lg" : "text-4xl sm:text-5xl"
-          }`}
-          style={{ fontFamily: '"Thmanyah Serif Display", "Thmanyah Sans", serif' }}
-        >
-          إلى {groomName}
-        </p>
-        <span
-          className={`mt-[7%] block h-px ${compact ? "w-6" : "w-12"}`}
-          style={{ backgroundColor: template.accent }}
-        />
-        <p
-          className={`mt-auto max-h-[42%] overflow-hidden [overflow-wrap:anywhere] leading-[1.75] ${
-            compact ? "text-[7px]" : "text-base sm:text-lg"
-          }`}
-          style={{ fontFamily: '"Thmanyah Serif Text", "Thmanyah Sans", serif' }}
-        >
-          {message}
-        </p>
-        <div className="mt-auto">
-          <p
-            className={compact ? "text-[6px]" : "text-[11px] sm:text-xs"}
-            style={{ color: template.mutedText }}
-          >
-            من:
-          </p>
-          <p
-            className={`mt-1 font-bold ${
-              compact ? "text-[8px]" : "text-sm sm:text-base"
-            }`}
-          >
-            {guestName}
-          </p>
-        </div>
+      <div
+        style={{
+          height: 2,
+          background: "var(--color-accent-700)",
+          width: "40%",
+          alignSelf: "flex-end",
+          marginBottom: 4,
+        }}
+      />
+      <div style={{ fontWeight: 700, fontSize: 22 }}>{groomName}</div>
+      <div
+        style={{
+          fontSize: 10,
+          color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+        }}
+      >
+        {label}
       </div>
     </div>
   );

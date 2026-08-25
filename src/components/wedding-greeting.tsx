@@ -1,16 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import {
-  type FormEvent,
-  type ReactNode,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useId, useRef, useState } from "react";
 
 import { CardTemplatePreview } from "@/components/card-template-preview";
+import { GreetingCardDisplay } from "@/components/greeting-card-display";
 import {
   cardTemplates,
   getCardTemplate,
@@ -20,350 +13,157 @@ import { weddingConfig } from "@/config/wedding";
 import { renderGreetingCard } from "@/lib/card-renderer";
 import {
   buildEmailUrl,
-  buildWhatsAppUrl,
+  buildWhatsAppShareUrl,
   formatGreetingMessage,
 } from "@/lib/message-links";
 
-type Step = "compose" | "method" | "text" | "templates" | "card";
-type FieldErrors = { name?: string; message?: string };
+type Step = "intro" | "form" | "pick" | "card";
 type ContactKind = "phone" | "email";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
+const cardFileName = "تهنئة-عبدالله.png";
 
-type StepHeaderProps = {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-};
-
-function StepHeader({ eyebrow, title, description }: StepHeaderProps) {
-  return (
-    <header>
-      {eyebrow ? (
-        <p className="mb-3 text-sm font-medium text-[#9A7B49]">{eyebrow}</p>
-      ) : null}
-      <h1 className="text-[2rem] leading-[1.3] font-bold tracking-[-0.025em] text-[#183C34] sm:text-4xl">
-        {title}
-      </h1>
-      {description ? (
-        <p className="mt-3 max-w-md text-[0.98rem] leading-7 text-[#69736C]">
-          {description}
-        </p>
-      ) : null}
-    </header>
-  );
-}
-
-type BackButtonProps = { onClick: () => void };
-
-function BackButton({ onClick }: BackButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring -mr-2 inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm font-medium text-[#69736C] transition-colors hover:text-[#183C34]"
-    >
-      <span aria-hidden="true">→</span>
-      رجوع
-    </button>
-  );
-}
-
-type ChoiceButtonProps = {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-};
-
-function ChoiceButton({ icon, title, description, onClick }: ChoiceButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring group flex min-h-28 w-full items-center gap-4 rounded-3xl border border-[#DED8CC] bg-[#FCFAF5] p-5 text-right transition-[border-color,background-color,transform] hover:-translate-y-0.5 hover:border-[#BAA47F] hover:bg-white active:translate-y-0"
-    >
-      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#EEE8DD] text-xl text-[#183C34]">
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-lg font-bold text-[#183C34]">{title}</span>
-        <span className="mt-1 block text-sm leading-6 text-[#737A74]">
-          {description}
-        </span>
-      </span>
-      <span
-        aria-hidden="true"
-        className="text-lg text-[#A58B61] transition-transform group-hover:-translate-x-0.5"
-      >
-        ←
-      </span>
-    </button>
-  );
-}
-
-function ProgressMark({ step }: { step: Step }) {
-  const position =
-    step === "compose" ? 1 : step === "method" ? 2 : step === "card" ? 4 : 3;
-
-  return (
-    <div className="flex items-center gap-1.5" aria-label={`الخطوة ${position} من 4`}>
-      {[1, 2, 3, 4].map((item) => (
-        <span
-          key={item}
-          className={`h-1.5 rounded-full transition-[width,background-color] ${
-            item === position ? "w-6 bg-[#9B7D4F]" : "w-1.5 bg-[#D8D1C5]"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
-type ShareChoiceHintProps = {
-  copiedContact: ContactKind | null;
-  copyStatus: string;
-  onCopy: (kind: ContactKind) => void;
-};
-
-function ShareChoiceHint({
-  copiedContact,
-  copyStatus,
-  onCopy,
-}: ShareChoiceHintProps) {
-  return (
-    <section
-      aria-label="بيانات تواصل عبدالله"
-      className="rounded-2xl border border-[#DED8CC] bg-[#FCFAF5] p-3"
-    >
-      <p className="px-1 pb-2 text-sm font-bold text-[#294B43]">
-        تحتاج بيانات عبدالله؟
-      </p>
-
-      <div className="space-y-2">
-        <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E3DDD2] bg-white pr-3">
-          <span className="min-w-0">
-            <span className="block text-xs text-[#7A807B]">رقم عبدالله</span>
-            <bdi
-              dir="ltr"
-              className="block select-all text-sm font-bold text-[#294B43]"
-            >
-              {weddingConfig.whatsappDisplayNumber}
-            </bdi>
-          </span>
-          <button
-            type="button"
-            onClick={() => onCopy("phone")}
-            className="focus-ring min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
-            aria-label={
-              copiedContact === "phone"
-                ? "تم نسخ رقم عبدالله"
-                : "نسخ رقم عبدالله"
-            }
-          >
-            {copiedContact === "phone" ? "تم النسخ ✓" : "نسخ"}
-          </button>
-        </div>
-
-        <div className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#E3DDD2] bg-white pr-3">
-          <span className="min-w-0 overflow-hidden">
-            <span className="block text-xs text-[#7A807B]">إيميل عبدالله</span>
-            <bdi
-              dir="ltr"
-              className="block select-all truncate text-sm font-bold text-[#294B43]"
-            >
-              {weddingConfig.email}
-            </bdi>
-          </span>
-          <button
-            type="button"
-            onClick={() => onCopy("email")}
-            className="focus-ring min-h-11 shrink-0 rounded-xl px-3 text-sm font-bold text-[#8C7046]"
-            aria-label={
-              copiedContact === "email"
-                ? "تم نسخ إيميل عبدالله"
-                : "نسخ إيميل عبدالله"
-            }
-          >
-            {copiedContact === "email" ? "تم النسخ ✓" : "نسخ"}
-          </button>
-        </div>
-      </div>
-
-      <p
-        className={
-          copyStatus
-            ? "px-1 pt-2 text-xs leading-5 text-[#69736C]"
-            : "sr-only"
-        }
-        aria-live="polite"
-      >
-        {copyStatus}
-      </p>
-    </section>
-  );
+function riseIn(duration: string, delay: string): string {
+  return `riseIn ${duration} ease ${delay} both`;
 }
 
 export function WeddingGreeting() {
-  const [step, setStep] = useState<Step>("compose");
-  const [guestName, setGuestName] = useState("");
+  const [step, setStep] = useState<Step>("intro");
+  const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [selectedTemplate, setSelectedTemplate] =
-    useState<CardTemplateId>("ivory");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
-  const [generatedBlob, setGeneratedBlob] = useState<Blob | null>(null);
-  const [canShareFiles, setCanShareFiles] = useState<boolean | null>(null);
+  const [cardStyle, setCardStyle] = useState<CardTemplateId>("grid");
+  const [shake, setShake] = useState(false);
+  const [sent, setSent] = useState(false);
   const [cardStatus, setCardStatus] = useState("");
   const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
-  const [isImageExpanded, setIsImageExpanded] = useState(false);
 
   const nameId = useId();
   const messageId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
-  const messageRef = useRef<HTMLTextAreaElement>(null);
-  const closeImageRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    return () => {
-      if (generatedUrl) {
-        URL.revokeObjectURL(generatedUrl);
-      }
-    };
-  }, [generatedUrl]);
-
-  useEffect(() => {
-    if (isImageExpanded) {
-      closeImageRef.current?.focus();
-    }
-  }, [isImageExpanded]);
-
-  const formattedMessage = formatGreetingMessage({
-    guestName,
-    message,
-    groomName: weddingConfig.groomName,
-  });
-  const whatsappUrl = buildWhatsAppUrl(
-    weddingConfig.whatsappNumber,
-    formattedMessage,
-  );
+  const template = getCardTemplate(cardStyle);
+  const formattedMessage = formatGreetingMessage({ guestName: name, message });
+  const whatsappShareUrl = buildWhatsAppShareUrl(formattedMessage);
   const emailUrl = buildEmailUrl(
     weddingConfig.email,
-    weddingConfig.emailSubject,
+    `تهنئة زواج من ${name}`,
     formattedMessage,
   );
 
-  function handleComposeSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const nextErrors: FieldErrors = {};
-
-    if (guestName.trim().length < 2) {
-      nextErrors.name = "اكتب اسمك لإضافته إلى التهنئة";
-    }
-
-    if (message.trim().length < 5) {
-      nextErrors.message = "اكتب تهنئتك لعبدالله";
-    }
-
-    setErrors(nextErrors);
-
-    if (nextErrors.name) {
-      nameRef.current?.focus();
-      return;
-    }
-
-    if (nextErrors.message) {
-      messageRef.current?.focus();
-      return;
-    }
-
-    setGuestName(guestName.trim());
-    setMessage(message.trim());
-    setStep("method");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  function goForm() {
+    setStep("form");
   }
 
-  function goBack() {
+  function backToIntro() {
+    setStep("intro");
+  }
+
+  function backToForm() {
+    setSent(false);
     setCardStatus("");
     setCopiedContact(null);
     setCopyStatus("");
-
-    if (step === "method") setStep("compose");
-    if (step === "text" || step === "templates") setStep("method");
-    if (step === "card") {
-      setIsImageExpanded(false);
-      setStep("templates");
-    }
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStep("form");
   }
 
-  async function generateCard() {
-    setIsGenerating(true);
+  function backToPick() {
+    setSent(false);
+    setCardStatus("");
+    setCopiedContact(null);
+    setCopyStatus("");
+    setStep("pick");
+  }
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!name.trim() || !message.trim()) {
+      setShake(true);
+      nameRef.current?.focus();
+      setTimeout(() => setShake(false), 400);
+      return;
+    }
+
+    setName(name.trim());
+    setMessage(message.trim());
+    setStep("pick");
+  }
+
+  function pickStyle(id: CardTemplateId) {
+    setCardStyle(id);
+    setStep("card");
+  }
+
+  async function downloadCard() {
     setCardStatus("");
 
     try {
       const blob = await renderGreetingCard({
-        template: getCardTemplate(selectedTemplate),
+        template,
         groomName: weddingConfig.groomName,
-        guestName,
+        guestName: name,
         message,
+        dateLine: weddingConfig.dateLine,
       });
-      const file = new File([blob], "tahnia-abdullah.png", {
-        type: "image/png",
-      });
-      const sharingIsSupported =
-        typeof navigator.share === "function" &&
-        typeof navigator.canShare === "function" &&
-        navigator.canShare({ files: [file] });
-
-      setGeneratedBlob(blob);
-      setGeneratedUrl(URL.createObjectURL(blob));
-      setCanShareFiles(sharingIsSupported);
-      setStep("card");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = cardFileName;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
     } catch {
       setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
-    } finally {
-      setIsGenerating(false);
     }
   }
 
   async function shareCard() {
-    if (!generatedBlob) return;
-
-    const file = new File([generatedBlob], "tahnia-abdullah.png", {
-      type: "image/png",
-    });
+    setCardStatus("");
 
     try {
-      await navigator.share({
-        files: [file],
-        title: `تهنئة لـ${weddingConfig.groomName}`,
-        text: formattedMessage,
+      const blob = await renderGreetingCard({
+        template,
+        groomName: weddingConfig.groomName,
+        guestName: name,
+        message,
+        dateLine: weddingConfig.dateLine,
       });
-      setCardStatus("فُتحت خيارات المشاركة.");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return;
+      const file = new File([blob], cardFileName, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            text: `تهنئتي لـ${weddingConfig.groomName} بمناسبة زواجه`,
+          });
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return;
+          }
+        }
       }
 
-      setCanShareFiles(false);
-      setCardStatus(
-        "تعذرت المشاركة المباشرة. كبّر البطاقة واحفظها في الصور، ثم شاركها من جهازك.",
-      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = cardFileName;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
     }
+  }
+
+  function sendText() {
+    window.open(whatsappShareUrl, "_blank");
+    setSent(true);
   }
 
   async function copyContact(kind: ContactKind) {
     const value =
-      kind === "phone"
-        ? weddingConfig.whatsappDisplayNumber
-        : weddingConfig.email;
+      kind === "phone" ? weddingConfig.whatsappDisplayNumber : weddingConfig.email;
     const label = kind === "phone" ? "رقم عبدالله" : "إيميل عبدالله";
 
     try {
@@ -381,350 +181,547 @@ export function WeddingGreeting() {
   }
 
   return (
-    <div className="app-shell mx-auto flex min-h-svh w-full max-w-xl flex-col">
-      <div className="flex min-h-11 items-center justify-between">
-        <p className="text-sm font-bold tracking-[-0.01em] text-[#183C34]">
-          تهنئة لعبدالله
-          <span className="mr-1 text-[#A88956]" aria-hidden="true">
-            •
-          </span>
-        </p>
-        <ProgressMark step={step} />
-      </div>
-
-      <section
-        key={step}
-        className="screen-enter flex flex-1 flex-col pt-8 pb-2 sm:justify-center sm:py-12"
-      >
-        {step === "compose" ? (
-          <>
-            <StepHeader
-              eyebrow="تهنئة بمناسبة الزواج"
-              title="اكتب تهنئتك لعبدالله"
-              description="شارك عبدالله فرحة زواجه بكلمات تبقى ذكرى جميلة."
-            />
-
-            <form className="mt-9 space-y-5" onSubmit={handleComposeSubmit} noValidate>
-              <div>
-                <label
-                  htmlFor={nameId}
-                  className="mb-2 block text-sm font-bold text-[#26473F]"
-                >
-                  اسمك
-                </label>
-                <input
-                  ref={nameRef}
-                  id={nameId}
-                  name="guestName"
-                  type="text"
-                  value={guestName}
-                  onChange={(event) => {
-                    setGuestName(event.target.value);
-                    if (errors.name) setErrors((current) => ({ ...current, name: undefined }));
-                  }}
-                  maxLength={maxNameLength}
-                  autoComplete="name"
-                  enterKeyHint="next"
-                  placeholder="اكتب اسمك"
-                  aria-invalid={Boolean(errors.name)}
-                  aria-describedby={errors.name ? `${nameId}-error` : undefined}
-                  className="focus-ring min-h-14 w-full rounded-2xl border border-[#DCD5C9] bg-[#FCFAF5] px-4 text-base text-[#183C34] placeholder:text-[#A8AAA5] focus:border-[#AA9167] focus:outline-none"
-                />
-                {errors.name ? (
-                  <p id={`${nameId}-error`} className="mt-2 text-sm text-[#A34E46]">
-                    {errors.name}
-                  </p>
-                ) : null}
-              </div>
-
-              <div>
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <label htmlFor={messageId} className="text-sm font-bold text-[#26473F]">
-                    تهنئتك لعبدالله
-                  </label>
-                  <span className="text-xs tabular-nums text-[#8A8E89]" aria-live="polite">
-                    {message.length}/{maxMessageLength}
-                  </span>
-                </div>
-                <textarea
-                  ref={messageRef}
-                  id={messageId}
-                  name="message"
-                  value={message}
-                  onChange={(event) => {
-                    setMessage(event.target.value);
-                    if (errors.message) {
-                      setErrors((current) => ({ ...current, message: undefined }));
-                    }
-                  }}
-                  maxLength={maxMessageLength}
-                  rows={5}
-                  enterKeyHint="done"
-                  placeholder="مثلاً: الله يبارك لكما ويجمع بينكما بخير"
-                  aria-invalid={Boolean(errors.message)}
-                  aria-describedby={errors.message ? `${messageId}-error` : undefined}
-                  className="focus-ring min-h-36 w-full resize-none rounded-2xl border border-[#DCD5C9] bg-[#FCFAF5] px-4 py-3 text-base leading-7 text-[#183C34] placeholder:text-[#A8AAA5] focus:border-[#AA9167] focus:outline-none"
-                />
-                {errors.message ? (
-                  <p id={`${messageId}-error`} className="mt-2 text-sm text-[#A34E46]">
-                    {errors.message}
-                  </p>
-                ) : null}
-              </div>
-
-              <button
-                type="submit"
-                className="focus-ring min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42] active:bg-[#12332C]"
-              >
-                متابعة
-              </button>
-            </form>
-          </>
-        ) : null}
-
-        {step === "method" ? (
-          <>
-            <BackButton onClick={goBack} />
-            <div className="mt-5">
-              <StepHeader
-                eyebrow={`مرحبًا ${guestName}`}
-                title="كيف تود إرسال تهنئتك؟"
-                description="اختر رسالة نصية أو بطاقة تهنئة."
-              />
-            </div>
-            <div className="mt-8 space-y-3">
-              <ChoiceButton
-                icon={<span aria-hidden="true">✦</span>}
-                title="رسالة نصية"
-                description="أرسل تهنئتك عبر واتساب أو الإيميل"
-                onClick={() => setStep("text")}
-              />
-              <ChoiceButton
-                icon={<span aria-hidden="true">▧</span>}
-                title="بطاقة تهنئة"
-                description="اختر تصميمًا وشارك البطاقة من جوالك"
-                onClick={() => setStep("templates")}
-              />
-            </div>
-          </>
-        ) : null}
-
-        {step === "text" ? (
-          <>
-            <BackButton onClick={goBack} />
-            <div className="mt-5">
-              <StepHeader
-                eyebrow="رسالتك جاهزة"
-                title="أرسل تهنئتك لعبدالله"
-                description="ستفتح الرسالة جاهزة، ويبقى عليك مراجعتها وإرسالها."
-              />
-            </div>
-
-            <div className="mt-7 rounded-3xl border border-[#DED8CC] bg-[#FCFAF5] p-5">
-              <p className="whitespace-pre-wrap text-[0.98rem] leading-8 text-[#294B43]">
-                {formattedMessage}
-              </p>
-            </div>
-
-            {weddingConfig.contactDetailsArePlaceholders ? (
-              <p className="mt-3 rounded-xl bg-[#EEE8DD] px-3 py-2 text-xs leading-5 text-[#735F3E]">
-                تنبيه للمطوّر: بيانات التواصل تجريبية وتحتاج تحديث قبل النشر.
-              </p>
-            ) : null}
-
-            <div className="mt-6 space-y-3">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42]"
-              >
-                <span aria-hidden="true">◉</span>
-                إرسال على واتساب
-              </a>
-              <a
-                href={emailUrl}
-                className="focus-ring flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[#CFC6B7] bg-[#FCFAF5] px-5 text-base font-bold text-[#23463E] transition-colors hover:bg-white"
-              >
-                <span aria-hidden="true">✉</span>
-                إرسال بالإيميل
-              </a>
-            </div>
-          </>
-        ) : null}
-
-        {step === "templates" ? (
-          <>
-            <BackButton onClick={goBack} />
-            <div className="mt-5">
-              <StepHeader
-                eyebrow="بطاقة تهنئة"
-                title="اختر تصميم البطاقة"
-                description="اختر التصميم المناسب، وسنجهز لك البطاقة."
-              />
-            </div>
-
-            <div className="mt-7 grid grid-cols-3 gap-2.5" role="radiogroup" aria-label="تصميم البطاقة">
-              {cardTemplates.map((template) => {
-                const isSelected = selectedTemplate === template.id;
-
-                return (
-                  <button
-                    key={template.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    aria-label={`تصميم ${template.name}`}
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className={`focus-ring min-w-0 rounded-[1.2rem] border p-1.5 text-right transition-[border-color,box-shadow] ${
-                      isSelected
-                        ? "border-[#987A4B] shadow-[0_0_0_2px_rgba(152,122,75,0.14)]"
-                        : "border-[#DED8CC]"
-                    }`}
-                  >
-                    <CardTemplatePreview
-                      template={template}
-                      groomName={weddingConfig.groomName}
-                      guestName={guestName}
-                      message={message}
-                      compact
-                    />
-                    <span className="my-2 block truncate px-1 text-center text-sm font-bold text-[#26473F]">
-                      {template.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={generateCard}
-              disabled={isGenerating}
-              className="focus-ring mt-7 min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42] disabled:cursor-wait disabled:opacity-65"
-            >
-              {isGenerating ? "جارٍ تجهيز البطاقة…" : "معاينة البطاقة"}
-            </button>
-            {cardStatus ? (
-              <p className="mt-3 text-center text-sm text-[#A34E46]" role="alert">
-                {cardStatus}
-              </p>
-            ) : null}
-          </>
-        ) : null}
-
-        {step === "card" && generatedUrl ? (
-          <>
-            <BackButton onClick={goBack} />
-            <div className="mt-5">
-              <StepHeader
-                eyebrow="بطاقتك جاهزة"
-                title="راجع البطاقة وشاركها"
-                description="يمكنك مشاركتها مباشرة، أو تكبيرها وحفظها في الصور."
-              />
-            </div>
-
-            <div className="relative mx-auto mt-7 w-full max-w-[23rem] overflow-hidden rounded-[1.6rem] shadow-[0_18px_50px_rgba(49,56,51,0.12)]">
-              <Image
-                src={generatedUrl}
-                alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
-                width={1080}
-                height={1350}
-                unoptimized
-                className="h-auto w-full"
-              />
-              <button
-                type="button"
-                onClick={() => setIsImageExpanded(true)}
-                className="focus-ring absolute top-3 left-3 min-h-11 rounded-full border border-white/70 bg-[#FCFAF5]/95 px-4 text-sm font-bold text-[#23463E] shadow-sm backdrop-blur-sm"
-                aria-label="تكبير البطاقة"
-              >
-                تكبير
-              </button>
-            </div>
-
-            <p className="mt-3 text-center text-sm leading-6 text-[#69736C]">
-              لحفظها في ألبوم الصور: كبّر البطاقة، ثم اضغط عليها مطولًا واختر
-              «حفظ الصورة» أو «إضافة إلى الصور» حسب جهازك.
-            </p>
-
-            <div className="mt-7 space-y-3">
-              {canShareFiles ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={shareCard}
-                    className="focus-ring min-h-14 w-full rounded-2xl bg-[#183C34] px-5 text-base font-bold text-white transition-colors hover:bg-[#214C42]"
-                  >
-                    مشاركة البطاقة
-                  </button>
-                  <ShareChoiceHint
-                    copiedContact={copiedContact}
-                    copyStatus={copyStatus}
-                    onCopy={copyContact}
-                  />
-                </>
-              ) : (
-                <p className="rounded-2xl bg-[#EEE8DD] px-4 py-3 text-sm leading-6 text-[#735F3E]">
-                  المشاركة المباشرة غير مدعومة هنا. كبّر البطاقة واحفظها في
-                  الصور، ثم شاركها من جهازك.
-                </p>
-              )}
-            </div>
-
-            {cardStatus ? (
-              <p className="mt-3 text-center text-sm text-[#69736C]" role="status">
-                {cardStatus}
-              </p>
-            ) : null}
-          </>
-        ) : null}
-      </section>
-
-      {isImageExpanded && generatedUrl ? (
+    <div
+      dir="rtl"
+      lang="ar"
+      className="ar"
+      style={{
+        position: "relative",
+        minHeight: "100vh",
+        width: "100%",
+        background: "var(--color-bg)",
+        color: "var(--color-text)",
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+      }}
+    >
+      {step === "intro" ? (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="expanded-card-title"
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setIsImageExpanded(false);
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "52px 26px",
+            gap: 16,
+            maxWidth: 480,
+            margin: "0 auto",
+            boxSizing: "border-box",
+            textAlign: "right",
           }}
-          className="fixed inset-0 z-50 flex flex-col overflow-auto bg-[#13221F]/95 px-3 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
-          <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-4 pb-3 text-white">
-            <h2 id="expanded-card-title" className="text-base font-bold">
-              البطاقة بالحجم الكامل
-            </h2>
-            <button
-              ref={closeImageRef}
-              type="button"
-              onClick={() => setIsImageExpanded(false)}
-              className="focus-ring min-h-11 rounded-full border border-white/25 px-4 text-sm font-bold"
-            >
-              إغلاق
-            </button>
+          <div
+            style={{
+              height: 3,
+              background: "var(--color-accent-700)",
+              width: "100%",
+              animation: riseIn("0.5s", "0s"),
+            }}
+          />
+          <div
+            style={{
+              display: "inline-flex",
+              alignSelf: "flex-end",
+              border: "1px solid var(--color-accent-700)",
+              color: "var(--color-accent-700)",
+              fontSize: 12,
+              letterSpacing: "0.08em",
+              padding: "4px 12px",
+              animation: riseIn("0.6s", "0.1s"),
+            }}
+          >
+            دعوة تهنئة
           </div>
-
-          <div className="m-auto flex w-full max-w-xl flex-col items-center gap-3">
-            <Image
-              src={generatedUrl}
-              alt={`بطاقة تهنئة لـ${weddingConfig.groomName} من ${guestName}`}
-              width={1080}
-              height={1350}
-              unoptimized
-              className="max-h-[calc(100svh-9rem)] w-auto max-w-full rounded-2xl object-contain"
-              style={{ touchAction: "pinch-zoom" }}
-            />
-            <p className="text-center text-sm leading-6 text-white/85">
-              اضغط مطولًا على البطاقة، ثم اختر «حفظ الصورة» أو «إضافة إلى الصور».
-            </p>
-          </div>
+          <h1
+            className="ar"
+            style={{
+              fontWeight: 700,
+              fontSize: "clamp(46px,13vw,68px)",
+              lineHeight: 1.05,
+              margin: "6px 0 0",
+              animation: riseIn("0.7s", "0.18s"),
+            }}
+          >
+            حيّاكم الله
+          </h1>
+          <h2
+            className="ar"
+            style={{
+              fontWeight: 700,
+              fontSize: "clamp(26px,7vw,36px)",
+              lineHeight: 1.15,
+              margin: 0,
+              color: "var(--color-accent-700)",
+              animation: riseIn("0.7s", "0.26s"),
+            }}
+          >
+            في زواج {weddingConfig.groomName}
+          </h2>
+          <p
+            className="ar"
+            style={{
+              fontSize: 14,
+              color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
+              margin: "2px 0 0",
+              animation: riseIn("0.7s", "0.32s"),
+            }}
+          >
+            {weddingConfig.dateLine}
+          </p>
+          <div
+            style={{
+              height: 1,
+              background: "var(--color-divider)",
+              width: "100%",
+              margin: "8px 0",
+              animation: riseIn("0.6s", "0.36s"),
+            }}
+          />
+          <p
+            className="ar"
+            style={{
+              fontSize: 16,
+              lineHeight: 1.95,
+              whiteSpace: "pre-line",
+              margin: 0,
+              color: "var(--color-text)",
+              animation: riseIn("0.7s", "0.42s"),
+            }}
+          >
+            {"في ليلةٍ تكتمل فيها الأفراح، وتُزفّ فيها أجمل الأمنيات،\nنسعد بحضوركم ومشاركتكم فرحتنا،\nفوجودكم بيننا هو أجمل ما تكتمل به سعادتنا"}
+          </p>
+          <h3
+            className="ar"
+            style={{
+              fontWeight: 700,
+              fontSize: 24,
+              margin: "8px 0 0",
+              color: "var(--color-accent-700)",
+              animation: riseIn("0.6s", "0.48s"),
+            }}
+          >
+            شاركونا الفرحة
+          </h3>
+          <div
+            style={{
+              height: 2,
+              background: "var(--color-divider)",
+              width: "100%",
+              margin: "10px 0",
+              animation: riseIn("0.6s", "0.52s"),
+            }}
+          />
+          <button
+            type="button"
+            onClick={goForm}
+            className="btn btn-primary ar"
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              padding: "16px 0",
+              fontSize: 17,
+              background: "var(--color-accent-700)",
+              animation: riseIn("0.6s", "0.58s"),
+            }}
+          >
+            اكتب تهنئتك
+          </button>
         </div>
       ) : null}
 
-      <footer className="pt-6 text-center text-[11px] text-[#8A8E89]">
-        تهنئة خاصة لعبدالله
-      </footer>
+      {step === "form" ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            padding: "40px 24px",
+            gap: 20,
+            maxWidth: 480,
+            margin: "0 auto",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        >
+          <div style={{ height: 2, background: "var(--color-accent-700)" }} />
+          <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 26 }}>
+            تهنئتك لـ{weddingConfig.groomName}
+          </h2>
+          <p
+            className="ar"
+            style={{
+              margin: 0,
+              fontSize: 13,
+              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+            }}
+          >
+            بمناسبة الزواج - {weddingConfig.dateLine}
+          </p>
+
+          <form onSubmit={handleFormSubmit} noValidate>
+            <div className="field" style={{ marginTop: 8 }}>
+              <label htmlFor={nameId} className="ar">
+                اسمك
+              </label>
+              <input
+                ref={nameRef}
+                id={nameId}
+                name="guestName"
+                type="text"
+                className="input ar"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={maxNameLength}
+                autoComplete="name"
+                enterKeyHint="next"
+                placeholder="مثال : عبدالله الحضريتي"
+                style={{ animation: shake ? "shake 0.4s ease" : "none" }}
+              />
+            </div>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor={messageId} className="ar">
+                تهنئتك
+              </label>
+              <textarea
+                id={messageId}
+                name="message"
+                className="input ar"
+                rows={4}
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                maxLength={maxMessageLength}
+                enterKeyHint="done"
+                placeholder="اكتب تهنئتك هنا..."
+                style={{ animation: shake ? "shake 0.4s ease" : "none" }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary ar"
+              style={{
+                justifyContent: "center",
+                padding: "16px 0",
+                fontSize: 16,
+                marginTop: 6,
+                background: "var(--color-accent-700)",
+                width: "100%",
+              }}
+            >
+              التالي: اختر تصميم البطاقة
+            </button>
+            <button
+              type="button"
+              onClick={backToIntro}
+              className="btn btn-ghost ar"
+              style={{ justifyContent: "center", width: "100%", marginTop: 8 }}
+            >
+              رجوع
+            </button>
+          </form>
+        </div>
+      ) : null}
+
+      {step === "pick" ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            padding: "40px 24px",
+            gap: 16,
+            maxWidth: 480,
+            margin: "0 auto",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        >
+          <div style={{ height: 2, background: "var(--color-accent-700)" }} />
+          <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 24 }}>
+            اختر تصميم بطاقتك
+          </h2>
+
+          <div role="radiogroup" aria-label="تصميم البطاقة">
+            {cardTemplates.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="radio"
+                aria-checked={cardStyle === item.id}
+                aria-label={`تصميم ${item.name}`}
+                onClick={() => pickStyle(item.id)}
+                style={{
+                  all: "unset",
+                  cursor: "pointer",
+                  border: "1px solid var(--color-divider)",
+                  display: "flex",
+                  overflow: "hidden",
+                  marginTop: 16,
+                  width: "100%",
+                }}
+              >
+                <CardTemplatePreview template={item} groomName={weddingConfig.groomName} />
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={backToForm}
+            className="btn btn-ghost ar"
+            style={{ justifyContent: "center" }}
+          >
+            رجوع للتعديل
+          </button>
+        </div>
+      ) : null}
+
+      {step === "card" ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            padding: "32px 24px",
+            gap: 16,
+            maxWidth: 480,
+            margin: "0 auto",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        >
+          <GreetingCardDisplay
+            template={template}
+            groomName={weddingConfig.groomName}
+            guestName={name}
+            message={message}
+            dateLine={weddingConfig.dateLine}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginTop: 6,
+            }}
+          >
+            <button
+              type="button"
+              onClick={downloadCard}
+              className="btn btn-secondary ar"
+              style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
+            >
+              حفظ الصورة
+            </button>
+            <button
+              type="button"
+              onClick={shareCard}
+              className="btn btn-secondary ar"
+              style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
+            >
+              مشاركة الصورة
+            </button>
+            <button
+              type="button"
+              onClick={sendText}
+              className="btn btn-primary ar"
+              style={{
+                justifyContent: "center",
+                padding: "16px 0",
+                fontSize: 16,
+                background: "var(--color-accent-700)",
+              }}
+            >
+              إرسال كنص عبر الواتساب
+            </button>
+            <a
+              href={emailUrl}
+              className="btn btn-secondary ar"
+              style={{ justifyContent: "center", padding: "14px 0", fontSize: 15 }}
+            >
+              إرسال كنص عبر الإيميل
+            </a>
+          </div>
+
+          <div
+            className="ar"
+            style={{
+              border: "1px solid var(--color-divider)",
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              textAlign: "right",
+            }}
+            aria-label="بيانات تواصل عبدالله"
+          >
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
+              بيانات التواصل
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                border: "1px solid var(--color-divider)",
+                background: "var(--color-surface)",
+                padding: "8px 10px",
+              }}
+            >
+              <span style={{ minWidth: 0 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+                  }}
+                >
+                  رقم عبدالله
+                </span>
+                <bdi
+                  dir="ltr"
+                  style={{ display: "block", fontSize: 14, fontWeight: 700 }}
+                >
+                  {weddingConfig.whatsappDisplayNumber}
+                </bdi>
+              </span>
+              <button
+                type="button"
+                onClick={() => copyContact("phone")}
+                className="btn btn-ghost ar"
+                style={{ fontSize: 13, flexShrink: 0 }}
+                aria-label={
+                  copiedContact === "phone" ? "تم نسخ رقم عبدالله" : "نسخ رقم عبدالله"
+                }
+              >
+                {copiedContact === "phone" ? "تم النسخ ✓" : "نسخ"}
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                border: "1px solid var(--color-divider)",
+                background: "var(--color-surface)",
+                padding: "8px 10px",
+              }}
+            >
+              <span style={{ minWidth: 0, overflow: "hidden" }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+                  }}
+                >
+                  إيميل عبدالله
+                </span>
+                <bdi
+                  dir="ltr"
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {weddingConfig.email}
+                </bdi>
+              </span>
+              <button
+                type="button"
+                onClick={() => copyContact("email")}
+                className="btn btn-ghost ar"
+                style={{ fontSize: 13, flexShrink: 0 }}
+                aria-label={
+                  copiedContact === "email" ? "تم نسخ إيميل عبدالله" : "نسخ إيميل عبدالله"
+                }
+              >
+                {copiedContact === "email" ? "تم النسخ ✓" : "نسخ"}
+              </button>
+            </div>
+
+            {copyStatus ? (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+                }}
+                aria-live="polite"
+              >
+                {copyStatus}
+              </p>
+            ) : null}
+          </div>
+
+          {cardStatus ? (
+            <p
+              className="ar"
+              style={{
+                textAlign: "center",
+                fontSize: 14,
+                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+              }}
+              role="alert"
+            >
+              {cardStatus}
+            </p>
+          ) : null}
+
+          {sent ? (
+            <div
+              className="ar"
+              style={{
+                border: "1px solid var(--color-accent-700)",
+                padding: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                textAlign: "right",
+                animation: "riseIn 0.4s ease both",
+              }}
+            >
+              <div style={{ fontWeight: 700, fontSize: 14 }}>تم فتح واتساب</div>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
+                }}
+              >
+                أكمل الإرسال من عندك لتصل تهنئتك لـ{weddingConfig.groomName}.
+              </div>
+            </div>
+          ) : null}
+
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+            <button
+              type="button"
+              onClick={backToPick}
+              className="btn btn-ghost ar"
+              style={{ fontSize: 13 }}
+            >
+              تغيير التصميم
+            </button>
+            <button
+              type="button"
+              onClick={backToForm}
+              className="btn btn-ghost ar"
+              style={{ fontSize: 13 }}
+            >
+              تعديل التهنئة
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

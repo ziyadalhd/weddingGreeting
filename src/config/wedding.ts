@@ -4,9 +4,7 @@ export const weddingConfig = {
   whatsappNumber: "966569264771",
   whatsappDisplayNumber: "0569264771",
   email: "ziyadalhdriti@gmail.com",
-  eventDate: "",
-  emailSubject: "تهنئة بمناسبة زواج عبدالله",
-  contactDetailsArePlaceholders: false,
+  dateLine: "الجمعة ٤ سبتمبر ٢٠٢٦",
 } as const;
 
 export type WeddingConfig = typeof weddingConfig;
