@@ -360,7 +360,7 @@ export function WeddingGreeting() {
                 maxLength={maxNameLength}
                 autoComplete="name"
                 enterKeyHint="next"
-                placeholder="مثال : عبدالله يحيى الحضريتي"
+                placeholder="اكتب اسمك كما تحب ان يظهر..."
                 style={{ animation: shake ? "shake 0.4s ease" : "none" }}
               />
             </div>
