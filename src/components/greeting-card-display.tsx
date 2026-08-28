@@ -93,7 +93,7 @@ function GreetingCardDisplayComponent({
           >
             الرسالة
           </div>
-          <div style={{ fontSize: 28, lineHeight: 1.5 }}>{message}</div>
+          <div style={{ fontSize: 20, lineHeight: 1.6 }}>{message}</div>
         </div>
 
         <div
@@ -192,8 +192,8 @@ function GreetingCardDisplayComponent({
       />
       <div
         style={{
-          fontSize: 28,
-          lineHeight: 1.5,
+          fontSize: 20,
+          lineHeight: 1.6,
           color: isPoster ? "var(--color-bg)" : undefined,
         }}
       >
