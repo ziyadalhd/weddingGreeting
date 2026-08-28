@@ -89,7 +89,12 @@ function drawFramedCard(
   y += nameFontSize === 130 ? 110 : 100;
   context.fillStyle = template.text;
   context.font = arFont(700, nameFontSize);
-  context.fillText(groomName, cardWidth - margin, y);
+  const nameLines = wrapLines(context, groomName, cardWidth - margin * 2);
+  const nameLineHeight = Math.round(nameFontSize * 0.95);
+  nameLines.forEach((line, index) => {
+    if (index > 0) y += nameLineHeight;
+    context.fillText(line, cardWidth - margin, y);
+  });
   y += 56;
 
   context.fillStyle = template.mutedText;

@@ -41,6 +41,9 @@ export function WeddingGreeting() {
   const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [supportsDirectDownload] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches,
+  );
 
   const nameId = useId();
   const messageId = useId();
@@ -118,7 +121,7 @@ export function WeddingGreeting() {
     try {
       const blob = await renderGreetingCard({
         template,
-        groomName: weddingConfig.groomName,
+        groomName: weddingConfig.groomFullName,
         guestName: name,
         message,
         dateLine: weddingConfig.dateLine,
@@ -133,13 +136,22 @@ export function WeddingGreeting() {
     setPreviewUrl(null);
   }
 
+  function downloadImageDirect() {
+    if (!previewUrl) return;
+
+    const link = document.createElement("a");
+    link.href = previewUrl;
+    link.download = cardFileName;
+    link.click();
+  }
+
   async function shareCard() {
     setCardStatus("");
 
     try {
       const blob = await renderGreetingCard({
         template,
-        groomName: weddingConfig.groomName,
+        groomName: weddingConfig.groomFullName,
         guestName: name,
         message,
         dateLine: weddingConfig.dateLine,
@@ -150,8 +162,8 @@ export function WeddingGreeting() {
         try {
           await navigator.share({
             files: [file],
-            title: "إلى العريس / عبدالله يحيى الحضريتي",
-            text: "إلى العريس / عبدالله يحيى الحضريتي",
+            title: `إلى العريس / ${weddingConfig.groomFullName}`,
+            text: `إلى العريس / ${weddingConfig.groomFullName}`,
           });
           return;
         } catch (error) {
@@ -437,7 +449,7 @@ export function WeddingGreeting() {
                   width: "100%",
                 }}
               >
-                <CardTemplatePreview template={item} groomName={weddingConfig.groomName} />
+                <CardTemplatePreview template={item} groomName={weddingConfig.groomFullName} />
               </button>
             ))}
           </div>
@@ -457,11 +469,25 @@ export function WeddingGreeting() {
         <div className="step step-card">
           <GreetingCardDisplay
             template={template}
-            groomName={weddingConfig.groomName}
+            groomName={weddingConfig.groomFullName}
             guestName={name}
             message={message}
             dateLine={weddingConfig.dateLine}
           />
+
+          <p
+            className="ar"
+            style={{
+              margin: "2px 0 0",
+              fontSize: 13,
+              lineHeight: 1.7,
+              textAlign: "center",
+              color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
+            }}
+          >
+            يمكنك حفظ البطاقة كصورة لمشاركتها، أو إرسال تهنئتك مباشرة كنص عبر
+            الواتساب والإيميل
+          </p>
 
           <div
             className="contain-content"
@@ -675,20 +701,29 @@ export function WeddingGreeting() {
             </div>
           ) : null}
 
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 12,
+              marginTop: 8,
+              paddingTop: 16,
+              borderTop: "1px solid var(--color-divider)",
+            }}
+          >
             <button
               type="button"
               onClick={backToPick}
-              className="btn btn-ghost ar"
-              style={{ fontSize: 13 }}
+              className="btn btn-secondary ar"
+              style={{ fontSize: 14, padding: "10px 18px" }}
             >
               تغيير التصميم
             </button>
             <button
               type="button"
               onClick={backToForm}
-              className="btn btn-ghost ar"
-              style={{ fontSize: 13 }}
+              className="btn btn-secondary ar"
+              style={{ fontSize: 14, padding: "10px 18px" }}
             >
               تعديل التهنئة
             </button>
@@ -707,48 +742,86 @@ export function WeddingGreeting() {
             inset: 0,
             zIndex: 50,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: 16,
             padding: 20,
-            background: "color-mix(in srgb, var(--color-neutral-900) 92%, transparent)",
+            background: "var(--color-neutral-900)",
           }}
         >
-          <Image
-            src={previewUrl}
-            alt={`بطاقة تهنئة لعبدالله من ${name}`}
-            width={1200}
-            height={1500}
-            unoptimized
+          <div
+            className="contain-content"
             onClick={(event) => event.stopPropagation()}
             style={{
-              maxWidth: "min(92vw, 420px)",
-              maxHeight: "70vh",
-              width: "auto",
-              height: "auto",
-              objectFit: "contain",
-            }}
-          />
-          <p
-            className="ar"
-            style={{
-              margin: 0,
-              textAlign: "center",
-              fontSize: 14,
-              color: "var(--color-bg)",
+              width: "100%",
+              maxWidth: 420,
+              maxHeight: "92vh",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              padding: 18,
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-divider)",
             }}
           >
-            اضغط مطولاً على الصورة لحفظها في ألبوم الصور
-          </p>
-          <button
-            type="button"
-            onClick={closePreview}
-            className="btn btn-ghost ar"
-            style={{ color: "var(--color-bg)" }}
-          >
-            إغلاق
-          </button>
+            <Image
+              src={previewUrl}
+              alt={`بطاقة تهنئة لـ${weddingConfig.groomFullName} من ${name}`}
+              width={1200}
+              height={1500}
+              unoptimized
+              style={{
+                width: "100%",
+                maxHeight: "60vh",
+                height: "auto",
+                objectFit: "contain",
+                border: "1px solid var(--color-divider)",
+              }}
+            />
+
+            {supportsDirectDownload ? (
+              <button
+                type="button"
+                onClick={downloadImageDirect}
+                className="btn btn-primary ar"
+                style={{
+                  justifyContent: "center",
+                  padding: "14px 0",
+                  fontSize: 15,
+                  background: "var(--color-accent-700)",
+                }}
+              >
+                تحميل الصورة
+              </button>
+            ) : (
+              <div
+                className="ar"
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--color-accent-700) 10%, var(--color-surface))",
+                  border: "1px solid var(--color-accent-700)",
+                  borderInlineStart: "4px solid var(--color-accent-700)",
+                  padding: "12px 14px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  lineHeight: 1.7,
+                  textAlign: "right",
+                  color: "var(--color-text)",
+                }}
+              >
+                اضغط مطولاً على الصورة ثم اختر حفظ في الصور
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={closePreview}
+              className="btn btn-secondary ar"
+              style={{ justifyContent: "center", padding: "12px 0", fontSize: 14 }}
+            >
+              إغلاق
+            </button>
+          </div>
         </div>
       ) : null}
     </div>
