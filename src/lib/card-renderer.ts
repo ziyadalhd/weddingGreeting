@@ -110,19 +110,19 @@ function drawFramedCard(
   context.moveTo(margin, y);
   context.lineTo(cardWidth - margin, y);
   context.stroke();
-  y += 56;
+  y += 84;
 
   context.fillStyle = template.text;
-  context.font = arFont(400, 32);
+  context.font = arFont(400, 53);
   const lines = wrapLines(context, `«${message}»`, cardWidth - margin * 2);
   for (const line of lines) {
     context.fillText(line, cardWidth - margin, y);
-    y += 46;
+    y += 77;
   }
   y += 20;
 
   context.fillStyle = template.accent;
-  context.font = arFont(700, 28);
+  context.font = arFont(700, 45);
   context.fillText(`— ${guestName}`, cardWidth - margin, y);
 }
 
@@ -171,11 +171,11 @@ function drawLedgerCard(
   y += 50;
 
   context.fillStyle = template.text;
-  context.font = arFont(400, 32);
+  context.font = arFont(400, 53);
   const lines = wrapLines(context, message, cardWidth - margin * 2);
   for (const line of lines) {
     context.fillText(line, cardWidth - margin, y);
-    y += 46;
+    y += 77;
   }
 
   context.fillStyle = template.accent;

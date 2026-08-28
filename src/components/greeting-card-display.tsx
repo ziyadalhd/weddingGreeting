@@ -1,4 +1,4 @@
-import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 
 import type { CardTemplate } from "@/config/card-templates";
 
@@ -18,9 +18,7 @@ const tickBase: CSSProperties = {
   transform: "rotate(45deg)",
 };
 
-const maxNameFontSize = 28;
-const posterMaxNameFontSize = 30;
-const minNameFontSize = 15;
+const nameFontSize = 24;
 
 function GreetingCardDisplayComponent({
   template,
@@ -30,31 +28,6 @@ function GreetingCardDisplayComponent({
   dateLine,
 }: GreetingCardDisplayProps) {
   const isPoster = template.id === "poster";
-  const nameRef = useRef<HTMLDivElement>(null);
-  const startFontSize = isPoster ? posterMaxNameFontSize : maxNameFontSize;
-  const [nameFontSize, setNameFontSize] = useState(startFontSize);
-
-  useLayoutEffect(() => {
-    const el = nameRef.current;
-    if (!el) return;
-
-    function fit() {
-      if (!el) return;
-      let size = startFontSize;
-      el.style.fontSize = `${size}px`;
-
-      while (el.scrollWidth > el.clientWidth && size > minNameFontSize) {
-        size -= 1;
-        el.style.fontSize = `${size}px`;
-      }
-
-      setNameFontSize(size);
-    }
-
-    fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, [groomName, startFontSize]);
 
   if (template.id === "ledger") {
     return (
@@ -120,7 +93,7 @@ function GreetingCardDisplayComponent({
           >
             الرسالة
           </div>
-          <div style={{ fontSize: 16, lineHeight: 1.7 }}>{message}</div>
+          <div style={{ fontSize: 28, lineHeight: 1.5 }}>{message}</div>
         </div>
 
         <div
@@ -187,15 +160,12 @@ function GreetingCardDisplayComponent({
       </div>
 
       <div
-        ref={nameRef}
         style={{
           fontWeight: 700,
           fontSize: nameFontSize,
           lineHeight: 1.5,
           padding: "6px 0",
           letterSpacing: "-0.01em",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
           color: isPoster ? "var(--color-bg)" : undefined,
         }}
       >
@@ -217,13 +187,13 @@ function GreetingCardDisplayComponent({
           background: isPoster
             ? "color-mix(in srgb, var(--color-bg) 30%, transparent)"
             : "var(--color-divider)",
-          margin: "8px 0",
+          margin: "8px 0 22px",
         }}
       />
       <div
         style={{
-          fontSize: 17,
-          lineHeight: 1.7,
+          fontSize: 28,
+          lineHeight: 1.5,
           color: isPoster ? "var(--color-bg)" : undefined,
         }}
       >
@@ -231,7 +201,7 @@ function GreetingCardDisplayComponent({
       </div>
       <div
         style={{
-          fontSize: 14,
+          fontSize: 24,
           fontWeight: 700,
           color: "var(--color-accent-700)",
           marginTop: 4,

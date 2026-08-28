@@ -1,6 +1,6 @@
 export const weddingConfig = {
   groomName: "عبدالله",
-  groomFullName: "عبدالله يحيى الحضريتي",
+  groomFullName: "عبد الله يحيى الحضريتي",
   whatsappNumber: "966569264771",
   whatsappDisplayNumber: "0569264771",
   email: "ziyadalhdriti@gmail.com",
