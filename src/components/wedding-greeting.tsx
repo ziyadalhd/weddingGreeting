@@ -35,9 +35,7 @@ export function WeddingGreeting() {
   const [copiedContact, setCopiedContact] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [supportsDirectDownload] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches,
-  );
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const nameId = useId();
   const messageId = useId();
@@ -115,6 +113,7 @@ export function WeddingGreeting() {
         message,
         dateLine: weddingConfig.dateLine,
       });
+      setPreviewBlob(blob);
       setPreviewUrl(URL.createObjectURL(blob));
     } catch {
       setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
@@ -123,10 +122,24 @@ export function WeddingGreeting() {
 
   function closePreview() {
     setPreviewUrl(null);
+    setPreviewBlob(null);
   }
 
-  function downloadImageDirect() {
-    if (!previewUrl) return;
+  async function saveImage() {
+    if (!previewUrl || !previewBlob) return;
+
+    const file = new File([previewBlob], cardFileName, { type: "image/png" });
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
 
     const link = document.createElement("a");
     link.href = previewUrl;
@@ -703,39 +716,32 @@ export function WeddingGreeting() {
               }}
             />
 
-            {supportsDirectDownload ? (
-              <button
-                type="button"
-                onClick={downloadImageDirect}
-                className="btn btn-primary ar"
-                style={{
-                  justifyContent: "center",
-                  padding: "14px 0",
-                  fontSize: 15,
-                  background: "var(--color-accent-700)",
-                }}
-              >
-                تحميل الصورة
-              </button>
-            ) : (
-              <div
-                className="ar"
-                style={{
-                  background:
-                    "color-mix(in srgb, var(--color-accent-700) 10%, var(--color-surface))",
-                  border: "1px solid var(--color-accent-700)",
-                  borderInlineStart: "4px solid var(--color-accent-700)",
-                  padding: "12px 14px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  lineHeight: 1.7,
-                  textAlign: "right",
-                  color: "var(--color-text)",
-                }}
-              >
-                اضغط مطولاً على الصورة ثم اختر حفظ في الصور
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={saveImage}
+              className="btn btn-primary ar"
+              style={{
+                justifyContent: "center",
+                padding: "14px 0",
+                fontSize: 15,
+                background: "var(--color-accent-700)",
+              }}
+            >
+              تحميل الصورة للجهاز
+            </button>
+
+            <p
+              className="ar"
+              style={{
+                margin: 0,
+                fontSize: 12,
+                lineHeight: 1.7,
+                textAlign: "center",
+                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
+              }}
+            >
+              أو يمكنك الضغط مطولاً على الصورة ثم اختيار حفظ في الصور
+            </p>
 
             <button
               type="button"
