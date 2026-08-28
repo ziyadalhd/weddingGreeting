@@ -4,6 +4,8 @@ const cardWidth = 1200;
 const cardHeight = 1500;
 const margin = 110;
 const fontFamily = '"IBM Plex Sans Arabic", Tahoma, Arial, sans-serif';
+const posterNameFontSize = 106;
+const defaultNameFontSize = 98;
 
 type RenderCardOptions = {
   template: CardTemplate;
@@ -86,11 +88,11 @@ function drawFramedCard(
   context.font = arFont(600, 26);
   context.fillText("بمناسبة زواج", cardWidth - margin, y);
 
-  y += nameFontSize === 130 ? 110 : 100;
+  y += nameFontSize === posterNameFontSize ? 90 : 82;
   context.fillStyle = template.text;
   context.font = arFont(700, nameFontSize);
   const nameLines = wrapLines(context, groomName, cardWidth - margin * 2);
-  const nameLineHeight = Math.round(nameFontSize * 0.95);
+  const nameLineHeight = Math.round(nameFontSize * 1.2);
   nameLines.forEach((line, index) => {
     if (index > 0) y += nameLineHeight;
     context.fillText(line, cardWidth - margin, y);
@@ -227,7 +229,7 @@ export async function renderGreetingCard({
       guestName,
       message,
       dateLine,
-      template.id === "poster" ? 130 : 120,
+      template.id === "poster" ? posterNameFontSize : defaultNameFontSize,
     );
   }
 

@@ -12,15 +12,9 @@ import {
 } from "@/config/card-templates";
 import { weddingConfig } from "@/config/wedding";
 import { renderGreetingCard } from "@/lib/card-renderer";
-import {
-  buildEmailUrl,
-  buildWhatsAppUrl,
-  formatGreetingMessage,
-} from "@/lib/message-links";
+import { buildWhatsAppUrl, formatGreetingMessage } from "@/lib/message-links";
 
 type Step = "intro" | "form" | "pick" | "card";
-type ContactKind = "phone" | "email";
-type SentVia = "whatsapp" | "email";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
@@ -36,9 +30,9 @@ export function WeddingGreeting() {
   const [message, setMessage] = useState("");
   const [cardStyle, setCardStyle] = useState<CardTemplateId>("grid");
   const [shake, setShake] = useState(false);
-  const [sentVia, setSentVia] = useState<SentVia | null>(null);
+  const [sentVia, setSentVia] = useState(false);
   const [cardStatus, setCardStatus] = useState("");
-  const [copiedContact, setCopiedContact] = useState<ContactKind | null>(null);
+  const [copiedContact, setCopiedContact] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [supportsDirectDownload] = useState(
@@ -65,11 +59,6 @@ export function WeddingGreeting() {
     weddingConfig.whatsappNumber,
     formattedMessage,
   );
-  const emailUrl = buildEmailUrl(
-    weddingConfig.email,
-    `تهنئة زواج من ${name}`,
-    formattedMessage,
-  );
 
   function goForm() {
     setStep("form");
@@ -80,17 +69,17 @@ export function WeddingGreeting() {
   }
 
   function backToForm() {
-    setSentVia(null);
+    setSentVia(false);
     setCardStatus("");
-    setCopiedContact(null);
+    setCopiedContact(false);
     setCopyStatus("");
     setStep("form");
   }
 
   function backToPick() {
-    setSentVia(null);
+    setSentVia(false);
     setCardStatus("");
-    setCopiedContact(null);
+    setCopiedContact(false);
     setCopyStatus("");
     setStep("pick");
   }
@@ -186,28 +175,20 @@ export function WeddingGreeting() {
 
   function sendText() {
     window.open(whatsappUrl, "_blank");
-    setSentVia("whatsapp");
+    setSentVia(true);
   }
 
-  function sendEmail() {
-    setSentVia("email");
-  }
-
-  async function copyContact(kind: ContactKind) {
-    const value =
-      kind === "phone" ? weddingConfig.whatsappDisplayNumber : weddingConfig.email;
-    const label = kind === "phone" ? "رقم عبدالله" : "إيميل عبدالله";
-
+  async function copyPhone() {
     try {
       if (!navigator.clipboard?.writeText) {
         throw new Error("Clipboard API is unavailable");
       }
 
-      await navigator.clipboard.writeText(value);
-      setCopiedContact(kind);
-      setCopyStatus(`تم نسخ ${label}`);
+      await navigator.clipboard.writeText(weddingConfig.whatsappDisplayNumber);
+      setCopiedContact(true);
+      setCopyStatus("تم نسخ رقم عبدالله");
     } catch {
-      setCopiedContact(null);
+      setCopiedContact(false);
       setCopyStatus("تعذر النسخ تلقائيًا. اضغط مطولًا على البيانات لنسخها.");
     }
   }
@@ -485,8 +466,8 @@ export function WeddingGreeting() {
               color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
             }}
           >
-            يمكنك حفظ البطاقة كصورة لمشاركتها، أو إرسال تهنئتك مباشرة كنص عبر
-            الواتساب والإيميل
+            يمكنك حفظ البطاقة كصورة لمشاركتها، أو إرسال تهنئتك مباشرة عبر
+            الواتساب
           </p>
 
           <div
@@ -534,19 +515,6 @@ export function WeddingGreeting() {
             >
               إرسال كنص عبر الواتساب
             </button>
-            <a
-              href={emailUrl}
-              onClick={sendEmail}
-              className="btn btn-primary ar"
-              style={{
-                justifyContent: "center",
-                padding: "16px 0",
-                fontSize: 16,
-                background: "var(--color-accent-700)",
-              }}
-            >
-              إرسال كنص عبر الإيميل
-            </a>
           </div>
 
           <div
@@ -595,61 +563,12 @@ export function WeddingGreeting() {
               </span>
               <button
                 type="button"
-                onClick={() => copyContact("phone")}
+                onClick={copyPhone}
                 className="btn btn-ghost ar"
                 style={{ fontSize: 13, flexShrink: 0 }}
-                aria-label={
-                  copiedContact === "phone" ? "تم نسخ رقم عبدالله" : "نسخ رقم عبدالله"
-                }
+                aria-label={copiedContact ? "تم نسخ رقم عبدالله" : "نسخ رقم عبدالله"}
               >
-                {copiedContact === "phone" ? "تم النسخ ✓" : "نسخ"}
-              </button>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                border: "1px solid var(--color-divider)",
-                background: "var(--color-surface)",
-                padding: "8px 10px",
-              }}
-            >
-              <span style={{ minWidth: 0, overflow: "hidden" }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-                  }}
-                >
-                  إيميل عبدالله
-                </span>
-                <bdi
-                  dir="ltr"
-                  style={{
-                    display: "block",
-                    fontSize: 14,
-                    fontWeight: 700,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {weddingConfig.email}
-                </bdi>
-              </span>
-              <button
-                type="button"
-                onClick={() => copyContact("email")}
-                className="btn btn-ghost ar"
-                style={{ fontSize: 13, flexShrink: 0 }}
-                aria-label={
-                  copiedContact === "email" ? "تم نسخ إيميل عبدالله" : "نسخ إيميل عبدالله"
-                }
-              >
-                {copiedContact === "email" ? "تم النسخ ✓" : "نسخ"}
+                {copiedContact ? "تم النسخ ✓" : "نسخ"}
               </button>
             </div>
 
@@ -694,9 +613,7 @@ export function WeddingGreeting() {
                 animation: "riseIn 0.4s ease both",
               }}
             >
-              <div style={{ fontWeight: 700, fontSize: 14 }}>
-                {sentVia === "whatsapp" ? "تم فتح واتساب" : "تم فتح تطبيق البريد"}
-              </div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>تم فتح واتساب</div>
               <div
                 style={{
                   fontSize: 13,

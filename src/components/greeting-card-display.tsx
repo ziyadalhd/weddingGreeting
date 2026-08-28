@@ -18,9 +18,9 @@ const tickBase: CSSProperties = {
   transform: "rotate(45deg)",
 };
 
-const maxNameFontSize = 34;
-const posterMaxNameFontSize = 36;
-const minNameFontSize = 18;
+const maxNameFontSize = 28;
+const posterMaxNameFontSize = 30;
+const minNameFontSize = 15;
 
 function GreetingCardDisplayComponent({
   template,
@@ -191,7 +191,8 @@ function GreetingCardDisplayComponent({
         style={{
           fontWeight: 700,
           fontSize: nameFontSize,
-          lineHeight: 1.2,
+          lineHeight: 1.5,
+          padding: "6px 0",
           letterSpacing: "-0.01em",
           whiteSpace: "nowrap",
           overflow: "hidden",
