@@ -4,8 +4,10 @@ const cardWidth = 1200;
 const cardHeight = 1500;
 const margin = 110;
 const fontFamily = '"IBM Plex Sans Arabic", Tahoma, Arial, sans-serif';
-const posterNameFontSize = 106;
-const defaultNameFontSize = 98;
+const nameFontSize = 72;
+const messageFontSize = 42;
+const senderFontSize = 36;
+const messageLineHeight = 61;
 
 type RenderCardOptions = {
   template: CardTemplate;
@@ -76,7 +78,6 @@ function drawFramedCard(
   guestName: string,
   message: string,
   dateLine: string,
-  nameFontSize: number,
 ) {
   drawFrame(context, template.divider);
   context.fillStyle = template.accent;
@@ -88,15 +89,10 @@ function drawFramedCard(
   context.font = arFont(600, 26);
   context.fillText("بمناسبة زواج", cardWidth - margin, y);
 
-  y += nameFontSize === posterNameFontSize ? 90 : 82;
+  y += template.dark ? 90 : 82;
   context.fillStyle = template.text;
   context.font = arFont(700, nameFontSize);
-  const nameLines = wrapLines(context, groomName, cardWidth - margin * 2);
-  const nameLineHeight = Math.round(nameFontSize * 1.2);
-  nameLines.forEach((line, index) => {
-    if (index > 0) y += nameLineHeight;
-    context.fillText(line, cardWidth - margin, y);
-  });
+  context.fillText(groomName, cardWidth - margin, y);
   y += 56;
 
   context.fillStyle = template.mutedText;
@@ -113,16 +109,16 @@ function drawFramedCard(
   y += 84;
 
   context.fillStyle = template.text;
-  context.font = arFont(400, 53);
+  context.font = arFont(400, messageFontSize);
   const lines = wrapLines(context, `«${message}»`, cardWidth - margin * 2);
   for (const line of lines) {
     context.fillText(line, cardWidth - margin, y);
-    y += 77;
+    y += messageLineHeight;
   }
   y += 20;
 
   context.fillStyle = template.accent;
-  context.font = arFont(700, 45);
+  context.font = arFont(700, senderFontSize);
   context.fillText(`— ${guestName}`, cardWidth - margin, y);
 }
 
@@ -171,11 +167,11 @@ function drawLedgerCard(
   y += 50;
 
   context.fillStyle = template.text;
-  context.font = arFont(400, 53);
+  context.font = arFont(400, messageFontSize);
   const lines = wrapLines(context, message, cardWidth - margin * 2);
   for (const line of lines) {
     context.fillText(line, cardWidth - margin, y);
-    y += 77;
+    y += messageLineHeight;
   }
 
   context.fillStyle = template.accent;
@@ -202,7 +198,7 @@ export async function renderGreetingCard({
   message,
   dateLine,
 }: RenderCardOptions): Promise<Blob> {
-  await document.fonts?.load(arFont(700, 120)).catch(() => undefined);
+  await document.fonts?.load(arFont(700, nameFontSize)).catch(() => undefined);
   await document.fonts?.ready;
 
   const canvas = document.createElement("canvas");
@@ -229,7 +225,6 @@ export async function renderGreetingCard({
       guestName,
       message,
       dateLine,
-      template.id === "poster" ? posterNameFontSize : defaultNameFontSize,
     );
   }
 
