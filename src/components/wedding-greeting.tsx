@@ -18,7 +18,7 @@ type Step = "intro" | "form" | "pick" | "card";
 
 const maxNameLength = 50;
 const maxMessageLength = 280;
-const cardFileName = "تهنئة-عبدالله.png";
+const cardFileName = "تهنئة-عبد الله.png";
 
 function riseIn(duration: string, delay: string): string {
   return `riseIn ${duration} ease ${delay} both`;
@@ -186,7 +186,7 @@ export function WeddingGreeting() {
 
       await navigator.clipboard.writeText(weddingConfig.whatsappDisplayNumber);
       setCopiedContact(true);
-      setCopyStatus("تم نسخ رقم عبدالله");
+      setCopyStatus("تم نسخ رقم عبد الله");
     } catch {
       setCopiedContact(false);
       setCopyStatus("تعذر النسخ تلقائيًا. اضغط مطولًا على البيانات لنسخها.");
@@ -320,7 +320,7 @@ export function WeddingGreeting() {
         <div className="step step-form">
           <div style={{ height: 2, background: "var(--color-accent-700)" }} />
           <h2 className="ar" style={{ margin: "6px 0 0", fontSize: 26 }}>
-            تهنئتك لعبدالله
+            تهنئتك لعبد الله
           </h2>
           <p
             className="ar"
@@ -527,7 +527,7 @@ export function WeddingGreeting() {
               gap: 8,
               textAlign: "right",
             }}
-            aria-label="بيانات تواصل عبدالله"
+            aria-label="بيانات تواصل عبد الله"
           >
             <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
               بيانات التواصل
@@ -552,7 +552,7 @@ export function WeddingGreeting() {
                     color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                   }}
                 >
-                  رقم عبدالله
+                  رقم عبد الله
                 </span>
                 <bdi
                   dir="ltr"
@@ -566,7 +566,7 @@ export function WeddingGreeting() {
                 onClick={copyPhone}
                 className="btn btn-ghost ar"
                 style={{ fontSize: 13, flexShrink: 0 }}
-                aria-label={copiedContact ? "تم نسخ رقم عبدالله" : "نسخ رقم عبدالله"}
+                aria-label={copiedContact ? "تم نسخ رقم عبد الله" : "نسخ رقم عبد الله"}
               >
                 {copiedContact ? "تم النسخ ✓" : "نسخ"}
               </button>
@@ -620,7 +620,7 @@ export function WeddingGreeting() {
                   color: "color-mix(in srgb, var(--color-text) 60%, transparent)",
                 }}
               >
-                أكمل الإرسال من عندك لتصل تهنئتك لعبدالله.
+                أكمل الإرسال من عندك لتصل تهنئتك لعبد الله.
               </div>
             </div>
           ) : null}

@@ -6,7 +6,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: `تهنئة زواج ${weddingConfig.groomName}`,
-  description: "اكتب تهنئتك لعبدالله وشاركها برسالة أو بطاقة جميلة.",
+  description: "اكتب تهنئتك لعبد الله وشاركها برسالة أو بطاقة جميلة.",
 };
 
 export const viewport: Viewport = {

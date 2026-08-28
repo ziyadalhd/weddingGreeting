@@ -15,4 +15,4 @@ ThmanyahSerifText-Medium.woff2
 
 إذا استُبدلت الملفات أو اختلفت أسماؤها، حدّث مسارات `@font-face` في `src/app/globals.css`. يستخدم الموقع خطوطًا عربية نظامية عند غيابها، لذلك لن يتعطل البناء.
 
-تستخدم الواجهة `Thmanyah Sans`، وتستخدم البطاقة `Thmanyah Serif Display` لاسم عبدالله و`Thmanyah Serif Text` لنص التهنئة.
+تستخدم الواجهة `Thmanyah Sans`، وتستخدم البطاقة `Thmanyah Serif Display` لاسم عبد الله و`Thmanyah Serif Text` لنص التهنئة.
