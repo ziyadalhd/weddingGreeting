@@ -478,7 +478,7 @@ export function WeddingGreeting() {
           <p
             className="ar"
             style={{
-              margin: "2px 0 0",
+              margin: "4px 0 0",
               fontSize: 13,
               lineHeight: 1.7,
               textAlign: "center",
@@ -491,13 +491,11 @@ export function WeddingGreeting() {
 
           <div
             className="contain-content"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginTop: 6,
-            }}
+            style={{ display: "flex", flexDirection: "column", gap: 10 }}
           >
+            <p className="ar" style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
+              حفظ ومشاركة البطاقة
+            </p>
             <button
               type="button"
               onClick={downloadCard}
@@ -514,6 +512,15 @@ export function WeddingGreeting() {
             >
               مشاركة الصورة
             </button>
+          </div>
+
+          <div
+            className="contain-content"
+            style={{ display: "flex", flexDirection: "column", gap: 10 }}
+          >
+            <p className="ar" style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
+              مشاركة التهنئة كنص
+            </p>
             <button
               type="button"
               onClick={sendText}

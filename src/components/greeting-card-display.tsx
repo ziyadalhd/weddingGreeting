@@ -1,4 +1,4 @@
-import { memo, type CSSProperties } from "react";
+import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
 import type { CardTemplate } from "@/config/card-templates";
 
@@ -18,6 +18,10 @@ const tickBase: CSSProperties = {
   transform: "rotate(45deg)",
 };
 
+const maxNameFontSize = 34;
+const posterMaxNameFontSize = 36;
+const minNameFontSize = 18;
+
 function GreetingCardDisplayComponent({
   template,
   groomName,
@@ -25,6 +29,33 @@ function GreetingCardDisplayComponent({
   message,
   dateLine,
 }: GreetingCardDisplayProps) {
+  const isPoster = template.id === "poster";
+  const nameRef = useRef<HTMLDivElement>(null);
+  const startFontSize = isPoster ? posterMaxNameFontSize : maxNameFontSize;
+  const [nameFontSize, setNameFontSize] = useState(startFontSize);
+
+  useLayoutEffect(() => {
+    const el = nameRef.current;
+    if (!el) return;
+
+    function fit() {
+      if (!el) return;
+      let size = startFontSize;
+      el.style.fontSize = `${size}px`;
+
+      while (el.scrollWidth > el.clientWidth && size > minNameFontSize) {
+        size -= 1;
+        el.style.fontSize = `${size}px`;
+      }
+
+      setNameFontSize(size);
+    }
+
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [groomName, startFontSize]);
+
   if (template.id === "ledger") {
     return (
       <div
@@ -103,8 +134,6 @@ function GreetingCardDisplayComponent({
     );
   }
 
-  const isPoster = template.id === "poster";
-
   return (
     <div
       className="ar"
@@ -158,10 +187,14 @@ function GreetingCardDisplayComponent({
       </div>
 
       <div
+        ref={nameRef}
         style={{
           fontWeight: 700,
-          fontSize: isPoster ? 50 : 46,
-          lineHeight: 1,
+          fontSize: nameFontSize,
+          lineHeight: 1.2,
+          letterSpacing: "-0.01em",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
           color: isPoster ? "var(--color-bg)" : undefined,
         }}
       >
