@@ -2,20 +2,20 @@
 
 ## Purpose
 
-Build and maintain one excellent, very small Arabic-first greeting experience for the wedding of Abdullah Yahya Al-hdriti. A guest arrives from a venue QR code, writes their name and congratulations, then sends plain text through WhatsApp/email or creates and shares a greeting-card image.
+Build and maintain one excellent, very small Arabic-first greeting experience for the wedding of Abdullah Yahya Al-hdriti. A guest arrives from a venue QR code, writes their name and congratulations, picks one of three greeting-card designs, previews it, and sends. The wish (name, message, chosen design) is stored in Supabase in that single submission; the guest may then save or share the same designed card as a keepsake.
 
 This is a wedding-specific MVP, not a reusable events platform.
 
 ## Non-negotiable MVP boundaries
 
-- Frontend-only, statically exported Next.js application.
-- No database, backend, API route, authentication, account, dashboard, CMS, payment, analytics, or paid API.
-- No WhatsApp Business/API integration. Use a prefilled WhatsApp deep link; the guest presses Send.
-- No email backend. Use `mailto:`; the guest presses Send.
+- Statically exported Next.js application. There is still no server: no API route, Server Action, or middleware. The browser talks to Supabase directly.
+- Supabase (Postgres + Storage) is the only backend. No API route, CMS, payment, analytics, or paid API.
+- Guests never send the wish themselves. The old prefilled WhatsApp/`mailto:` submission path was removed; wishes are written straight to the database.
+- Exactly one authenticated account exists, for the groom's `/admin` view. No guest accounts, no roles, no teams.
 - No server-side card generation. Generate PNG files locally with the browser Canvas API.
 - Do not implement roadmap ideas without explicit approval.
 - Do not add a dependency when a browser or framework feature is sufficient.
-- Never place secrets in client code. The current public contact details are not secrets.
+- Never place secrets in client code. The contact details and the Supabase publishable key are public by design; the service-role key must never enter this repo.
 
 ## Architecture and important decisions
 
@@ -24,14 +24,17 @@ This is a wedding-specific MVP, not a reusable events platform.
 - One public route (`/`) and one focused client-side, state-driven flow. No router is needed for steps.
 - `src/app/page.tsx` remains a Server Component; interactive behavior lives below `src/components/wedding-greeting.tsx`.
 - Wedding/contact copy is centralized in `src/config/wedding.ts`; never repeat the phone number, email, groom name, or link copy around the app.
-- Link construction is isolated in `src/lib/message-links.ts` and must use `URLSearchParams`/`encodeURIComponent` behavior safely.
+- Data access is isolated in `src/lib/wishes.ts` (network) and `src/lib/wish-draft.ts` (pure helpers: validation, pending-queue). Only the pure module is unit-tested, and it must stay free of runtime imports so `node --experimental-strip-types` can load it.
+- The chosen card design is captured in the same `INSERT` as the name and message, on the preview screen, after the guest has freely tried all three designs. There is no `UPDATE` policy and none is needed: nothing is written until the guest taps send, so the design is always known upfront.
+- Security lives in the database, not the client: `supabase/migrations/0001_wishes.sql` grants `anon` INSERT only, and SELECT solely to an authenticated session. Length limits are `CHECK` constraints because the publishable key ships inside the bundle and the form cannot be trusted.
 - Card definitions live in `src/config/card-templates.ts`. Keep the set to 2–3 explicit templates; do not build a generic template engine.
 - `src/lib/card-renderer.ts` draws a 1080×1350 PNG on an off-screen canvas. It waits for browser fonts, uses RTL canvas direction, wraps Arabic by words, reduces font size for long messages, and truncates only as a last resort.
 - Native sharing uses `navigator.share()` with a `File` and the formatted greeting text only when `navigator.canShare({ files })` confirms file support. The OS target picker—not the website—chooses WhatsApp; WhatsApp may treat the supplied text as an image caption depending on the device/version. Otherwise the generated image remains visible with a full-screen save fallback.
 - Browsers cannot write directly to the device photo library. The card page keeps the PNG as a real image and offers an accessible full-screen view for long-press “Save Image/Add to Photos.” Do not reintroduce a file-download link unless explicitly requested; it saves to Files rather than Photos on common mobile browsers and confused users in testing.
-- The text-message email path uses `mailto:` to prefill recipient, subject, and body. For cards, native sharing attaches the PNG but cannot prefill the email recipient, so the preview shows the configured phone number and email beside the share action.
+- Card sharing is a keepsake for the guest, not the submission mechanism: the wish is already stored by the time the card screen appears. Native sharing attaches the PNG but cannot prefill a recipient, so the card screen shows the configured phone number beside the share action.
 - Generated object URLs must be revoked when replaced/unmounted.
-- There is deliberately no environment-variable setup. Public wedding data is edited directly in the central config.
+- Two public environment variables are required (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`), documented in `.env.example`. Public wedding data stays in the central config.
+- A wish is saved to `localStorage` before the request and cleared only on a confirmed insert, so a submission that fails on venue Wi-Fi is retried on the guest's next visit.
 
 ## UX principles
 
@@ -67,10 +70,12 @@ This is a wedding-specific MVP, not a reusable events platform.
 
 ```text
 src/
-  app/                    # Root layout, metadata, global styles, home page
+  app/                    # Root layout, metadata, global styles, home and admin pages
   components/             # Interactive flow and focused presentation components
   config/                 # Central wedding data and the three card definitions
-  lib/                    # URL builders, card canvas renderer, focused tests
+  lib/                    # Supabase client, wish persistence, card renderer, tests
+supabase/
+  migrations/             # Schema, row level security, and storage policies
 public/
   fonts/thmanyah/         # Six required owner-supplied local WOFF2 files
 ```
@@ -84,12 +89,16 @@ Before marking work complete:
 3. `npm test`
 4. `npm run build`
 5. Browser check at mobile width for the full form, text, card, native-share/fallback paths.
-6. Confirm short/long Arabic copy, field errors, back navigation, WhatsApp encoding, email encoding, no console error, and no horizontal overflow at 320px.
+6. Confirm short/long Arabic copy, field errors, back navigation, no console error, and no horizontal overflow at 320px.
+7. Confirm a wish actually lands in the `wishes` table, that a submission made offline is retried on the next visit, and that the publishable key alone cannot read `wishes`.
 
 Browser-native file sharing varies by browser and requires HTTPS (localhost is permitted). Automated desktop browsers may exercise the documented full-screen save fallback; final iPhone Safari and Android Chrome share-sheet checks require physical devices before the wedding.
 
 ## Configuration checklist before production
 
+- Apply `supabase/migrations/0001_wishes.sql` to the production Supabase project.
+- Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` locally and in Vercel.
+- Create the single admin account matching `adminEmail` in `src/config/wedding.ts`, with a strong password, and disable public sign-ups in Supabase Auth.
 - Confirm the current `whatsappNumber` and `email` in `src/config/wedding.ts` before production.
 - Confirm the groom spelling and any event date.
 - Confirm licensed font files remain available at the documented paths.

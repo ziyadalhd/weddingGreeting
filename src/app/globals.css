@@ -212,6 +212,36 @@ textarea.input {
   }
 }
 
+@keyframes markIn {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes drawCheck {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Wipes from the right so the motion reads correctly in RTL. */
+@keyframes wipeIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes stepIn {
   from {
     opacity: 0;
@@ -289,7 +319,8 @@ textarea.input {
 
   .step-form,
   .step-pick,
-  .step-card {
+  .step-card,
+  .step-sent {
     padding: 28px 18px;
   }
 }
@@ -310,4 +341,51 @@ textarea.input {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.step-sent {
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 16px;
+}
+
+/* — admin — */
+.admin-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.admin-header {
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--color-accent-700);
+}
+
+.admin-grid {
+  columns: 2;
+  column-gap: 14px;
+}
+
+@media (max-width: 560px) {
+  .admin-grid {
+    columns: 1;
+  }
+}
+
+.admin-card {
+  break-inside: avoid;
+  margin-bottom: 14px;
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.admin-card-design {
+  break-inside: avoid;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
