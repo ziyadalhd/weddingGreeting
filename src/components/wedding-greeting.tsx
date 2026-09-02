@@ -27,8 +27,6 @@ export function WeddingGreeting() {
   const [message, setMessage] = useState("");
   const [cardStyle, setCardStyle] = useState<CardTemplateId>("grid");
   const [cardStatus, setCardStatus] = useState("");
-  const [copiedContact, setCopiedContact] = useState(false);
-  const [copyStatus, setCopyStatus] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
@@ -129,21 +127,6 @@ export function WeddingGreeting() {
       URL.revokeObjectURL(url);
     } catch {
       setCardStatus("تعذر تجهيز البطاقة. حاول مرة أخرى.");
-    }
-  }
-
-  async function copyPhone() {
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API is unavailable");
-      }
-
-      await navigator.clipboard.writeText(weddingConfig.whatsappDisplayNumber);
-      setCopiedContact(true);
-      setCopyStatus("تم نسخ رقم عبد الله");
-    } catch {
-      setCopiedContact(false);
-      setCopyStatus("تعذر النسخ تلقائيًا. اضغط مطولًا على البيانات لنسخها.");
     }
   }
 
@@ -308,11 +291,8 @@ export function WeddingGreeting() {
         <WishSent
           guestName={name.trim()}
           cardStatus={cardStatus}
-          copiedContact={copiedContact}
-          copyStatus={copyStatus}
           onDownload={downloadCard}
           onShare={shareCard}
-          onCopyPhone={copyPhone}
         />
       ) : null}
 

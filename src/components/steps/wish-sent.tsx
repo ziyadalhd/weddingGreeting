@@ -5,11 +5,8 @@ import { weddingConfig } from "@/config/wedding";
 type WishSentProps = {
   guestName: string;
   cardStatus: string;
-  copiedContact: boolean;
-  copyStatus: string;
   onDownload: () => void;
   onShare: () => void;
-  onCopyPhone: () => void;
 };
 
 const mutedText = "color-mix(in srgb, var(--color-text) 60%, transparent)";
@@ -21,11 +18,8 @@ function riseIn(delay: string): string {
 export function WishSent({
   guestName,
   cardStatus,
-  copiedContact,
-  copyStatus,
   onDownload,
   onShare,
-  onCopyPhone,
 }: WishSentProps) {
   return (
     <div className="step step-sent">
@@ -137,73 +131,6 @@ export function WishSent({
         >
           مشاركة الصورة
         </button>
-      </div>
-
-      <div
-        className="ar contain-content"
-        style={{
-          border: "1px solid var(--color-divider)",
-          padding: 14,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          textAlign: "right",
-          animation: riseIn("0.94s"),
-        }}
-        aria-label="بيانات تواصل عبد الله"
-      >
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
-          بيانات التواصل
-        </p>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            border: "1px solid var(--color-divider)",
-            background: "var(--color-surface)",
-            padding: "8px 10px",
-          }}
-        >
-          <span style={{ minWidth: 0 }}>
-            <span
-              style={{
-                display: "block",
-                fontSize: 11,
-                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-              }}
-            >
-              رقم عبد الله
-            </span>
-            <bdi dir="ltr" style={{ display: "block", fontSize: 14, fontWeight: 700 }}>
-              {weddingConfig.whatsappDisplayNumber}
-            </bdi>
-          </span>
-          <button
-            type="button"
-            onClick={onCopyPhone}
-            className="btn btn-ghost ar"
-            style={{ fontSize: 13, flexShrink: 0 }}
-            aria-label={copiedContact ? "تم نسخ رقم عبد الله" : "نسخ رقم عبد الله"}
-          >
-            {copiedContact ? "تم النسخ ✓" : "نسخ"}
-          </button>
-        </div>
-
-        {copyStatus ? (
-          <p
-            style={{
-              margin: 0,
-              fontSize: 12,
-              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-            }}
-            aria-live="polite"
-          >
-            {copyStatus}
-          </p>
-        ) : null}
       </div>
 
       {cardStatus ? (
