@@ -6,6 +6,7 @@ import { GreetingCardDisplay } from "@/components/greeting-card-display";
 import { getCardTemplate } from "@/config/card-templates";
 import { weddingConfig } from "@/config/wedding";
 import { fetchWishes, type WishRow } from "@/lib/wishes";
+import { downloadWishesPdf } from "@/lib/wishes-pdf";
 
 type AdminWishesProps = {
   onSignOut: () => void;
@@ -22,6 +23,7 @@ export function AdminWishes({ onSignOut }: AdminWishesProps) {
   const [search, setSearch] = useState("");
   const [cardsView, setCardsView] = useState(false);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +56,25 @@ export function AdminWishes({ onSignOut }: AdminWishesProps) {
       (wish) => wish.guestName.includes(term) || wish.message.includes(term),
     );
   }, [wishes, search]);
+
+  async function handleDownloadPdf() {
+    if (!wishes || wishes.length === 0 || exporting) return;
+
+    setExporting(true);
+    setError("");
+
+    try {
+      await downloadWishesPdf(
+        wishes,
+        `تهاني زواج ${weddingConfig.groomFullName}`,
+        `تهاني-${weddingConfig.groomName}.pdf`,
+      );
+    } catch {
+      setError("تعذر تجهيز ملف PDF. حاول مرة أخرى.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div dir="rtl" lang="ar" className="app-shell ar">
@@ -94,6 +115,15 @@ export function AdminWishes({ onSignOut }: AdminWishesProps) {
               }}
             >
               عرض كبطاقات
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={!wishes || wishes.length === 0 || exporting}
+              className="btn btn-secondary ar"
+              style={{ flexShrink: 0 }}
+            >
+              {exporting ? "جاري التجهيز..." : "تحميل PDF"}
             </button>
           </div>
         </header>
