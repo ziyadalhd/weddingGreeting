@@ -2,6 +2,10 @@
 
 تجربة عربية بسيطة ومهيأة للجوال لضيوف زواج عبد الله يحيى الحِدريتي. يصل الضيف من رمز QR، يكتب اسمه وتهنئته، يختار أحد ثلاثة تصاميم بطاقة ويعاينه بحرية، ثم يرسل — فتُحفظ التهنئة وتصميمها معًا في Supabase. بعدها يمكنه حفظ البطاقة نفسها كصورة أو مشاركتها من جواله.
 
+[عرض المشروع في البورتفوليو](https://ziyad-portfolio-six.vercel.app/en/projects/wedding-greetings)
+
+> **English:** An Arabic-first, mobile-friendly wedding greeting experience. Guests write a message, choose a card design, and save or share a generated image. Built with Next.js, TypeScript, Supabase, and browser Canvas APIs.
+
 ## نطاق النسخة الحالية
 
 - نموذج قصير للاسم والتهنئة.
